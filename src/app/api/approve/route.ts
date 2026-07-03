@@ -11,13 +11,27 @@ export async function GET(req: NextRequest) {
   const n8nUrl = `https://workflow.ccbp.in/webhook/client-invoice-approve?${params.toString()}`;
   
   try {
-    // Attempt to hit the webhook, but ignore the response entirely
-    await fetch(n8nUrl, { method: "GET" }).catch(e => console.error("Webhook request failed:", e));
+    const response = await fetch(n8nUrl, { method: "GET" });
+    if (!response.ok) {
+      throw new Error(`Webhook failed with status ${response.status}`);
+    }
   } catch (e: any) {
     console.error("Error invoking webhook:", e);
+    
+    // Return error UI if the webhook fails
+    return new NextResponse(
+      `<!DOCTYPE html>
+      <html>
+        <body style='font-family:Arial,sans-serif;text-align:center;padding:40px;background-color:#ffffff;'>
+          <img src="https://i.pinimg.com/originals/25/e2/a4/25e2a496c8204acd1e5c459d86d905e4.gif" alt="Error" style="max-width:300px;margin-bottom:20px;" />
+          <h2 style='color:#e74c3c;font-weight:600;margin-top:0;'>error occured in n8n</h2>
+        </body>
+      </html>`,
+      { headers: { "Content-Type": "text/html; charset=utf-8" } }
+    );
   }
 
-  // Always return success UI regardless of the webhook status
+  // Return success UI if the webhook is successful
   return new NextResponse(
     `<!DOCTYPE html>
     <html>
