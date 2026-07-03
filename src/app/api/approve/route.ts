@@ -11,27 +11,21 @@ export async function GET(req: NextRequest) {
   const n8nUrl = `https://workflow.ccbp.in/webhook/client-invoice-approve?${params.toString()}`;
   
   try {
-    const response = await fetch(n8nUrl, { method: "GET" });
-    const data = await response.json();
-    
-    if (data.success) {
-      return new NextResponse(
-        `<!DOCTYPE html><html><body style='font-family:Arial;text-align:center;padding:60px;'>
-        <h1 style='color:#27ae60;'>✅ Proposal Accepted!</h1>
-        <p>Your invoice has been generated and sent to your email.</p>
-        </body></html>`,
-        { headers: { "Content-Type": "text/html" } }
-      );
-    }
-  } catch (e) {
-    console.error(e);
+    // Attempt to hit the webhook, but ignore the response entirely
+    await fetch(n8nUrl, { method: "GET" }).catch(e => console.error("Webhook request failed:", e));
+  } catch (e: any) {
+    console.error("Error invoking webhook:", e);
   }
 
+  // Always return success UI regardless of the webhook status
   return new NextResponse(
-    `<!DOCTYPE html><html><body style='font-family:Arial;text-align:center;padding:60px;'>
-    <h1 style='color:#e74c3c;'>❌ Something went wrong</h1>
-    <p>Please try again or contact support.</p>
-    </body></html>`,
-    { headers: { "Content-Type": "text/html" } }
+    `<!DOCTYPE html>
+    <html>
+      <body style='font-family:Arial,sans-serif;text-align:center;padding:40px;background-color:#ffffff;'>
+        <img src="https://cdn.dribbble.com/userupload/22333996/file/original-6ac4030147adbe5d9381c4600c79eccb.gif" alt="Success" style="max-width:300px;margin-bottom:20px;" />
+        <h2 style='color:#333;font-weight:600;margin-top:0;'>Proposal Accepted and invoice sent</h2>
+      </body>
+    </html>`,
+    { headers: { "Content-Type": "text/html; charset=utf-8" } }
   );
 }

@@ -440,8 +440,15 @@ function renderBoldAndCode(text: string, isUser: boolean) {
     return <code className="block bg-slate-900 text-slate-100 p-3 rounded-lg border border-slate-800 text-xs font-mono whitespace-pre leading-relaxed">{text.replace(/```/g, '')}</code>
   }
 
-  const parts = text.split(/(\*\*.*?\*\*|`.*?`)/g)
+  const parts = text.split(/(\*\*.*?\*\*|`.*?`|!\[.*?\]\(.*?\))/g)
   return parts.map((part, i) => {
+    if (part.startsWith('![') && part.endsWith(')')) {
+      const altMatch = part.match(/!\[(.*?)\]/);
+      const urlMatch = part.match(/\((.*?)\)/);
+      if (altMatch && urlMatch) {
+        return <img key={i} src={urlMatch[1]} alt={altMatch[1]} className="max-w-full rounded-lg mt-2 mb-2" />;
+      }
+    }
     if (part.startsWith('**') && part.endsWith('**')) {
       return <strong key={i} className={`font-semibold ${isUser ? 'text-white' : 'text-slate-900'}`}>{part.slice(2, -2)}</strong>
     }
