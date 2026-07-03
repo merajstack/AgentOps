@@ -50,7 +50,7 @@ export default function FormPage() {
     setStatus('submitting')
     setErrorMessage('')
 
-    const webhookUrl = process.env.NEXT_PUBLIC_FORM_WEBHOOK_URL || 'https://workflow.ccbp.in/webhook-test/form-site'
+    const webhookUrl = process.env.NEXT_PUBLIC_FORM_WEBHOOK_URL || 'https://workflow.ccbp.in/webhook/form-site'
 
     try {
       const response = await fetch(webhookUrl, {
