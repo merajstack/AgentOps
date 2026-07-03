@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { ArrowLeft, Plus, Send, MessageSquare, Trash2, Menu } from 'lucide-react'
+import { ArrowLeft, Plus, Send, MessageSquare, Trash2, Menu, Copy, Check, Pencil } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import {
   type Conversation,
@@ -282,7 +282,11 @@ export default function ChatPage() {
           ) : (
             <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
               {active.messages.map((msg) => (
-                <MessageBubble key={msg.id} message={msg} />
+                <MessageBubble
+                  key={msg.id}
+                  message={msg}
+                  onEdit={(text) => setInput(text)}
+                />
               ))}
               {isTyping && <TypingIndicator />}
               <div ref={messagesEndRef} />
@@ -357,30 +361,70 @@ function EmptyState({ onQuestionClick }: { onQuestionClick: (q: string) => void 
   )
 }
 
-function MessageBubble({ message }: { message: Message }) {
+function MessageBubble({ message, onEdit }: { message: Message; onEdit: (text: string) => void }) {
   const isUser = message.role === 'user'
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(message.content)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // fallback — silently ignore
+    }
+  }
+
   return (
-    <div className={`flex gap-3 message-enter ${isUser ? 'justify-end' : ''}`}>
+    <div className={`group flex gap-3 message-enter ${isUser ? 'justify-end' : ''}`}>
       {!isUser && (
         <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 shadow-md shadow-sky-500/10 overflow-hidden bg-white">
           <img src="/icon.png" alt="AgentOps Bot" className="w-full h-full object-cover" />
         </div>
       )}
-      <div
-        className={`
-          max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed overflow-x-auto
-          ${isUser
-            ? 'bg-sky-500 text-white shadow-sm shadow-sky-500/5'
-            : 'bg-white text-slate-800 border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)]'
-          }
-        `}
-      >
-        {message.content.split('\n').map((line, i) => (
-          <p key={i} className={i > 0 ? 'mt-2' : ''}>
-            {renderBoldAndCode(line, isUser)}
-          </p>
-        ))}
+
+      <div className={`flex flex-col gap-1 max-w-[85%] ${isUser ? 'items-end' : 'items-start'}`}>
+        <div
+          className={`
+            rounded-2xl px-4 py-3 text-sm leading-relaxed overflow-x-auto w-full
+            ${isUser
+              ? 'bg-sky-500 text-white shadow-sm shadow-sky-500/5'
+              : 'bg-white text-slate-800 border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)]'
+            }
+          `}
+        >
+          {message.content.split('\n').map((line, i) => (
+            <p key={i} className={i > 0 ? 'mt-2' : ''}>
+              {renderBoldAndCode(line, isUser)}
+            </p>
+          ))}
+        </div>
+
+        {/* Action buttons — visible on hover */}
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+          {!isUser && (
+            <button
+              onClick={handleCopy}
+              title={copied ? 'Copied!' : 'Copy response'}
+              className="flex items-center gap-1 px-2 py-1 rounded-md text-xs text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
+            >
+              {copied ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
+              <span className={copied ? 'text-green-500' : ''}>{copied ? 'Copied!' : 'Copy'}</span>
+            </button>
+          )}
+          {isUser && (
+            <button
+              onClick={() => onEdit(message.content)}
+              title="Edit message"
+              className="flex items-center gap-1 px-2 py-1 rounded-md text-xs text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
+            >
+              <Pencil size={12} />
+              <span>Edit</span>
+            </button>
+          )}
+        </div>
       </div>
+
       {isUser && (
         <div className="w-7 h-7 rounded-full bg-sky-100 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 text-sky-700 border border-sky-200">
           U
