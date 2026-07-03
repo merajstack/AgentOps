@@ -23,22 +23,58 @@ export default function HeroPage() {
           <div className="liquid-glass rounded-xl px-4 py-2 flex items-center justify-between">
             <span className="text-2xl font-semibold tracking-tight">AgentOps</span>
             <div className="hidden md:flex items-center gap-8">
-              {['Story', 'Investing', 'Building', 'Advisory'].map((link) => (
-                <a
-                  key={link}
-                  href="#"
-                  className="text-sm text-white hover:text-gray-300 transition-colors"
-                >
-                  {link}
-                </a>
-              ))}
+              <Link href="/walkthrough" className="text-sm text-white hover:text-gray-300 transition-colors">
+                Walkthrough
+              </Link>
+              <a href="#" className="text-sm text-white hover:text-gray-300 transition-colors">
+                Building
+              </a>
+              <div className="relative group py-2">
+                <button className="text-sm text-white hover:text-gray-300 transition-colors cursor-pointer">
+                  Our Products
+                </button>
+                <div className="absolute top-full left-0 hidden group-hover:block bg-black/80 backdrop-blur-md border border-white/20 rounded-lg py-2 w-56">
+                  <Link href="/chat?q=Invoice Automation" className="block px-4 py-2 text-sm text-white hover:bg-white/10 transition-colors">
+                    Invoice Automation
+                  </Link>
+                  <Link href="/chat?q=Customer Support Bot" className="block px-4 py-2 text-sm text-white hover:bg-white/10 transition-colors">
+                    Customer Support Bot
+                  </Link>
+                  <Link href="/chat?q=Data Extraction" className="block px-4 py-2 text-sm text-white hover:bg-white/10 transition-colors">
+                    Data Extraction
+                  </Link>
+                </div>
+              </div>
             </div>
-            <Link
-              href="/chat"
-              className="bg-white text-black px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors cursor-pointer"
-            >
-              Start a Chat
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/chat"
+                className="bg-white text-black px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors cursor-pointer hidden sm:block"
+              >
+                Start a Chat
+              </Link>
+              
+              {/* User Menu */}
+              <div className="relative group py-2">
+                <button className="bg-white/10 hover:bg-white/20 border border-white/20 text-white w-10 h-10 rounded-full flex items-center justify-center transition-colors cursor-pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </button>
+                <div className="absolute top-full right-0 hidden group-hover:block bg-black/90 backdrop-blur-md border border-white/20 rounded-lg py-2 w-48 shadow-xl">
+                  <Link href="/settings" className="block px-4 py-2 text-sm text-white hover:bg-white/10 transition-colors">
+                    Account Settings
+                  </Link>
+                  <button 
+                    onClick={() => {
+                      localStorage.removeItem('agentops_user')
+                      window.location.href = '/auth'
+                    }} 
+                    className="w-full text-left block px-4 py-2 text-sm text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                  >
+                    Logout
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </nav>
 
@@ -64,9 +100,6 @@ export default function HeroPage() {
                   >
                     Start a Chat
                   </Link>
-                  <button className="liquid-glass border border-white/20 text-white px-8 py-3 rounded-lg font-medium hover:bg-white hover:text-black transition-all cursor-pointer">
-                    Explore Now
-                  </button>
                 </div>
               </FadeIn>
             </div>
