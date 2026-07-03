@@ -249,8 +249,8 @@ export default function ChatPage() {
         {/* Sidebar footer */}
         <div className="p-4 border-t border-sky-200/60">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-xs font-semibold text-white shadow-md shadow-sky-500/10">
-              A
+            <div className="w-8 h-8 rounded-full overflow-hidden shadow-md shadow-sky-500/10 shrink-0">
+              <img src="/icon.png" alt="AgentOps" className="w-full h-full object-cover" />
             </div>
             <div>
               <p className="text-sm font-semibold text-slate-800">AgentOps Assistant</p>
@@ -363,7 +363,7 @@ function MessageBubble({ message }: { message: Message }) {
     <div className={`flex gap-3 message-enter ${isUser ? 'justify-end' : ''}`}>
       {!isUser && (
         <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 shadow-md shadow-sky-500/10 overflow-hidden bg-white">
-          <img src="/favicon.ico" alt="Bot Icon" className="w-full h-full object-cover" />
+          <img src="/icon.png" alt="AgentOps Bot" className="w-full h-full object-cover" />
         </div>
       )}
       <div
@@ -412,7 +412,7 @@ function TypingIndicator() {
   return (
     <div className="flex gap-3 message-enter">
       <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-md shadow-sky-500/10 overflow-hidden bg-white">
-        <img src="/favicon.ico" alt="Bot Icon" className="w-full h-full object-cover" />
+        <img src="/icon.png" alt="AgentOps Bot" className="w-full h-full object-cover" />
       </div>
       <div className="flex items-center gap-1 py-3 px-2">
         {[0, 1, 2].map((i) => (

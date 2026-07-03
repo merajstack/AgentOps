@@ -3,9 +3,37 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "AgentOps - Automating India's Future",
-  description: "AgentOps - Automating India's future. We back visionaries and craft ventures.",
+  description: "AgentOps - Automating India's future. We back visionaries and craft ventures that define what comes next.",
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/icon.png", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icon.png", type: "image/png" },
+    ],
+    shortcut: "/icon.png",
+  },
+  openGraph: {
+    title: "AgentOps - Automating India's Future",
+    description: "AgentOps - Automating India's future. We back visionaries and craft ventures that define what comes next.",
+    url: "https://agentops.in",
+    siteName: "AgentOps",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1080,
+        height: 1080,
+        alt: "AgentOps - Automating India's Future",
+      },
+    ],
+    locale: "en_IN",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AgentOps - Automating India's Future",
+    description: "AgentOps - Automating India's future. We back visionaries and craft ventures.",
+    images: ["/og-image.jpg"],
   },
 };
 
