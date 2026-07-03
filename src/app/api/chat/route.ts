@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenAI } from '@google/genai';
 
-const apiKey = process.env.GEMINI_API_KEY || '';
-const ai = new GoogleGenAI({ apiKey });
+const apiKey = process.env.GROQ_API_KEY || '';
 
 const SYSTEM_INSTRUCTION = `
 You are the AgentOps AI Assistant. Your goal is to guide the user in setting up automations for their business.
@@ -55,32 +53,47 @@ export async function POST(req: Request) {
 
     if (!apiKey) {
       return NextResponse.json(
-        { content: "Please configure your `GEMINI_API_KEY` in `.env.local` to start chatting with Gemini." },
+        { content: "Please configure your `GROQ_API_KEY` in `.env.local` to start chatting." },
         { status: 200 }
       );
     }
 
-    // Convert messages to Gemini SDK contents format
-    // Map roles: user -> user, assistant -> model
-    const contents = messages.map((m: any) => ({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }],
-    }));
+    // Build messages array for Groq (OpenAI-compatible format)
+    const groqMessages = [
+      { role: 'system', content: SYSTEM_INSTRUCTION },
+      ...messages.map((m: any) => ({
+        role: m.role === 'assistant' ? 'assistant' : 'user',
+        content: m.content,
+      })),
+    ];
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents,
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
       },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: groqMessages,
+        temperature: 0.7,
+        max_tokens: 4096,
+      }),
     });
 
-    const responseText = response.text || "I'm sorry, I couldn't formulate a response.";
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData?.error?.message || `Groq API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const responseText = data.choices?.[0]?.message?.content || "I'm sorry, I couldn't formulate a response.";
+
     return NextResponse.json({ content: responseText });
   } catch (error: any) {
     console.error('Error in chat API route:', error);
     return NextResponse.json(
-      { content: `Error: ${error.message || 'Something went wrong while connecting to Gemini.'}` },
+      { content: `Error: ${error.message || 'Something went wrong while connecting to Groq.'}` },
       { status: 500 }
     );
   }
