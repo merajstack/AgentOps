@@ -1,23 +1,10 @@
 'use client'
 
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Loader2, CheckCircle2, AlertCircle, Camera, User, Eye, EyeOff } from 'lucide-react'
+import { ArrowLeft, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import {
-  saveFaceDescriptor,
-  getFaceDescriptor,
-  hasFaceData,
-  euclideanDistance,
-} from '@/lib/faceStore'
-
 import { FullScreenLoader } from '@/components/ui/full-screen-loader'
-
-// Dynamically loaded to avoid SSR issues
-let faceapi: typeof import('face-api.js') | null = null
-
-const getModelsUrl = () => typeof window !== 'undefined' ? `${window.location.origin}/models` : '/models'
-const FACE_MATCH_THRESHOLD = 0.55
 
 type AuthStatus =
   | 'idle'
@@ -27,11 +14,6 @@ type AuthStatus =
   | 'success'
   | 'error'
   | 'invalid_otp'
-  | 'loading_models'
-  | 'face_setup'
-  | 'face_capturing'
-  | 'face_login'
-  | 'face_verifying'
 
 export default function AuthPage() {
   const router = useRouter()
@@ -44,170 +26,12 @@ export default function AuthPage() {
   const [internalOtp, setInternalOtp] = useState<string | null>(null)
   const [resendTimer, setResendTimer] = useState(0)
 
-  // Face UI state
-  const [modelProgress, setModelProgress] = useState(0)
-  const [faceDetected, setFaceDetected] = useState(false)
-  const [faceMessage, setFaceMessage] = useState('')
-  const [isFaceEnabledForUser, setIsFaceEnabledForUser] = useState(false)
-  const [modelsLoaded, setModelsLoaded] = useState(false)
-
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const streamRef = useRef<MediaStream | null>(null)
-  const detectionLoopRef = useRef<number | null>(null)
-  const faceDetectedRef = useRef(false)
-
-  // ─── Camera helpers ─────────────────────────────────────────────────────────
-  const startCamera = async () => {
-    try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 640, height: 480, facingMode: 'user' },
-      })
-      streamRef.current = mediaStream
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream
-      }
-    } catch {
-      setStatus('error')
-      setErrorMessage('Camera access denied. Please allow camera access and try again.')
-    }
-  }
-
-  const stopCamera = useCallback(() => {
-    if (detectionLoopRef.current) {
-      cancelAnimationFrame(detectionLoopRef.current)
-      detectionLoopRef.current = null
-    }
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((t) => t.stop())
-      streamRef.current = null
-    }
-  }, [])
-
-  useEffect(() => () => stopCamera(), [stopCamera])
-
   // ─── OTP timer ───────────────────────────────────────────────────────────────
   useEffect(() => {
     if (resendTimer <= 0) return
     const interval = setInterval(() => setResendTimer((p) => p - 1), 1000)
     return () => clearInterval(interval)
   }, [resendTimer])
-
-  // ─── Check if returning user has face data ─────────────────────────────────
-  useEffect(() => {
-    if (!email || !email.includes('@')) {
-      setIsFaceEnabledForUser(false)
-      return
-    }
-    hasFaceData(email).then(setIsFaceEnabledForUser)
-  }, [email])
-
-  // ─── Load face-api.js models with progress ─────────────────────────────────
-  const loadModels = async (): Promise<boolean> => {
-    setStatus('loading_models')
-    setModelProgress(0)
-    try {
-      // Dynamically import to avoid SSR
-      faceapi = await import('face-api.js')
-
-      const steps = [
-        {
-          label: 'Loading face detector…',
-          fn: () => faceapi!.nets.tinyFaceDetector.loadFromUri(getModelsUrl()),
-          progress: 33,
-        },
-        {
-          label: 'Loading landmark model…',
-          fn: () => faceapi!.nets.faceLandmark68Net.loadFromUri(getModelsUrl()),
-          progress: 66,
-        },
-        {
-          label: 'Loading recognition model…',
-          fn: () => faceapi!.nets.faceRecognitionNet.loadFromUri(getModelsUrl()),
-          progress: 100,
-        },
-      ]
-
-      for (const step of steps) {
-        await step.fn()
-        setModelProgress(step.progress)
-        await new Promise((r) => setTimeout(r, 200)) // short pause to render progress
-      }
-      setModelsLoaded(true)
-      return true
-    } catch (err) {
-      setStatus('error')
-      const msg = err instanceof Error ? err.message : String(err)
-      setErrorMessage(`Failed to load face detection models: ${msg}. Please refresh and try again.`)
-      return false
-    }
-  }
-
-  // ─── Continuous face detection loop ────────────────────────────────────────
-  const startDetectionLoop = useCallback((onFaceFound?: (descriptor: Float32Array) => void) => {
-    if (!faceapi || !videoRef.current) return
-
-    const detect = async () => {
-      if (!videoRef.current || !faceapi) return
-      if (videoRef.current.readyState < 2) {
-        detectionLoopRef.current = requestAnimationFrame(detect)
-        return
-      }
-
-      try {
-        const detection = await faceapi
-          .detectSingleFace(
-            videoRef.current,
-            new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 })
-          )
-          .withFaceLandmarks()
-          .withFaceDescriptor()
-
-        if (detection) {
-          faceDetectedRef.current = true
-          setFaceDetected(true)
-          setFaceMessage('✅ Face detected! Hold still…')
-
-          // Draw bounding box overlay
-          if (canvasRef.current && videoRef.current) {
-            const displaySize = {
-              width: videoRef.current.videoWidth,
-              height: videoRef.current.videoHeight,
-            }
-            faceapi.matchDimensions(canvasRef.current, displaySize)
-            const resized = faceapi.resizeResults(detection, displaySize)
-            const ctx = canvasRef.current.getContext('2d')
-            if (ctx) {
-              ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)
-              faceapi.draw.drawDetections(canvasRef.current, resized)
-            }
-          }
-
-          if (onFaceFound) {
-            // Stop loop and pass descriptor back
-            onFaceFound(detection.descriptor)
-            return
-          }
-        } else {
-          faceDetectedRef.current = false
-          setFaceDetected(false)
-          setFaceMessage('⚠️ Face not visible. Adjust your camera or lighting and increase screen brightness.')
-
-          // Clear canvas
-          if (canvasRef.current) {
-            const ctx = canvasRef.current.getContext('2d')
-            ctx?.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)
-          }
-        }
-      } catch {
-        // detection frame error, keep looping
-      }
-
-      detectionLoopRef.current = requestAnimationFrame(detect)
-    }
-
-    detectionLoopRef.current = requestAnimationFrame(detect)
-  }, [])
 
   // ─── OTP Flow ────────────────────────────────────────────────────────────────
   const handleGetOtp = async () => {
@@ -266,421 +90,152 @@ export default function AuthPage() {
     setStatus('verifying')
     await new Promise((r) => setTimeout(r, 800))
     if (otp === internalOtp) {
-      if (!isFaceEnabledForUser) {
-        // Offer face setup after first OTP success
-        await initiateFaceSetup()
-      } else {
-        await completeLogin(email, name)
-      }
+      await completeLogin(email, name)
     } else {
       setStatus('invalid_otp')
       setErrorMessage('Invalid OTP. Please click "Resend OTP" to try again.')
     }
   }
 
-  // ─── Face Setup (Register) ───────────────────────────────────────────────────
-  const initiateFaceSetup = async () => {
-    const loaded = modelsLoaded ? true : await loadModels()
-    if (!loaded) return
-
-    setStatus('face_setup')
-    setFaceDetected(false)
-    setFaceMessage('')
-    await startCamera()
-
-    // Wait for video to be ready then start loop
-    setTimeout(() => {
-      startDetectionLoop()
-    }, 1000)
-  }
-
-  const handleCaptureFace = async () => {
-    if (!faceapi || !videoRef.current) return
-    setStatus('face_capturing')
-
-    // Stop current loop, do one precise detection
-    if (detectionLoopRef.current) {
-      cancelAnimationFrame(detectionLoopRef.current)
-      detectionLoopRef.current = null
-    }
-
-    try {
-      const detection = await faceapi
-        .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 }))
-        .withFaceLandmarks()
-        .withFaceDescriptor()
-
-      if (!detection) {
-        setFaceMessage('⚠️ Face not visible. Adjust your camera or lighting and increase screen brightness.')
-        setStatus('face_setup')
-        startDetectionLoop()
-        return
-      }
-
-      // Save the 128-dim vector
-      await saveFaceDescriptor(email, detection.descriptor)
-      stopCamera()
-      await completeLogin(email, name)
-    } catch (err) {
-      setStatus('error')
-      setErrorMessage('Face capture failed. Please try again.')
-    }
-  }
-
-  const handleSkipFaceSetup = async () => {
-    stopCamera()
-    await completeLogin(email, name)
-  }
-
-  // ─── Face Login (Verify) ─────────────────────────────────────────────────────
-  const initiateFaceLogin = async () => {
-    if (!email.includes('@')) {
-      setStatus('error'); setErrorMessage('Please enter your email address first.'); return
-    }
-    const loaded = modelsLoaded ? true : await loadModels()
-    if (!loaded) return
-
-    setStatus('face_login')
-    setFaceDetected(false)
-    setFaceMessage('')
-    await startCamera()
-
-    // Start detection loop — as soon as a face is stably found, verify it
-    setTimeout(() => {
-      startDetectionLoop()
-    }, 1000)
-  }
-
-  const handleVerifyFace = async () => {
-    if (!faceapi || !videoRef.current) return
-    setStatus('face_verifying')
-
-    if (detectionLoopRef.current) {
-      cancelAnimationFrame(detectionLoopRef.current)
-      detectionLoopRef.current = null
-    }
-
-    try {
-      const detection = await faceapi
-        .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 }))
-        .withFaceLandmarks()
-        .withFaceDescriptor()
-
-      if (!detection) {
-        setFaceMessage('⚠️ Face not visible. Adjust your camera or lighting and increase screen brightness.')
-        setStatus('face_login')
-        startDetectionLoop()
-        return
-      }
-
-      const stored = await getFaceDescriptor(email)
-      if (!stored) {
-        setStatus('error')
-        setErrorMessage('No face data found for this email. Please sign in with OTP.')
-        stopCamera()
-        return
-      }
-
-      const distance = euclideanDistance(detection.descriptor, stored)
-      stopCamera()
-
-      if (distance < FACE_MATCH_THRESHOLD) {
-        const { data } = await supabase.from('users').select('name').eq('email', email).single()
-        await completeLogin(email, data?.name || email.split('@')[0])
-      } else {
-        setStatus('error')
-        setErrorMessage(`Face not recognized (distance: ${distance.toFixed(2)}). Please try again or use OTP.`)
-      }
-    } catch (err) {
-      setStatus('error')
-      setErrorMessage('Face verification failed. Please try again.')
-    }
-  }
-
-  const handleCancelFaceView = () => {
-    stopCamera()
-    setStatus('idle')
-    setFaceMessage('')
-    setFaceDetected(false)
-  }
-
-  // ─── Derived booleans ────────────────────────────────────────────────────────
-  const isFaceView = ['loading_models', 'face_setup', 'face_capturing', 'face_login', 'face_verifying'].includes(status)
-  const isLoadingModels = status === 'loading_models'
-  const isCapturing = status === 'face_capturing' || status === 'face_verifying'
-  const isGlobalLoading = ['sending', 'verifying', 'face_capturing', 'face_verifying'].includes(status)
+  // ─── UI Rendering ────────────────────────────────────────────────────────────
+  const isGlobalLoading = ['sending', 'verifying'].includes(status)
 
   return (
-    <div className="relative min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col justify-between overflow-x-hidden font-sans">
-      {isGlobalLoading && <FullScreenLoader />}
-
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-sky-100/50 blur-[120px] pointer-events-none" />
+    <div className="relative min-h-screen bg-[#f8fafc] flex flex-col font-sans overflow-hidden">
+      {/* Decorative gradient backgrounds */}
+      <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-sky-100/50 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-50/50 blur-[120px] pointer-events-none" />
 
-      <header className="px-6 md:px-12 lg:px-16 pt-6 relative z-10">
-        <div className="bg-white/80 backdrop-blur-md border border-sky-100/80 shadow-sm rounded-xl px-4 py-2 flex items-center justify-between">
-          <button onClick={() => router.push('/')} className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition-colors cursor-pointer font-medium">
-            <ArrowLeft size={16} /><span>Back to Home</span>
-          </button>
-          <span className="text-sm font-semibold tracking-wider text-sky-600 font-medium">AUTHENTICATION</span>
+      {/* Global Loader Overlay */}
+      {isGlobalLoading && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/60 backdrop-blur-md animate-fadeIn">
+          <FullScreenLoader />
+          <p className="mt-6 text-sm font-semibold tracking-wider text-sky-600 animate-pulse">
+            {status === 'sending' ? 'SENDING OTP...' : 'VERIFYING...'}
+          </p>
         </div>
+      )}
+
+      {/* Header */}
+      <header className="px-6 md:px-12 py-6 flex items-center justify-between relative z-10">
+        <button
+          onClick={() => router.push('/')}
+          className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors cursor-pointer"
+        >
+          <ArrowLeft size={16} />
+          <span>Back to Home</span>
+        </button>
       </header>
 
-      <main className="flex-1 flex items-center justify-center px-4 py-12 relative z-10">
-        <div className="w-full max-w-md">
-          <div className="bg-white/90 backdrop-blur-md border border-sky-100/80 rounded-2xl p-8 md:p-10 shadow-[0_15px_40px_rgba(14,165,233,0.06)]">
-
-            <div className="text-center mb-6">
-              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-slate-950 mb-2">
-                {status === 'face_setup' || status === 'face_capturing' ? 'Enable Face Login'
-                  : status === 'face_login' || status === 'face_verifying' ? 'Face Verification'
-                  : status === 'loading_models' ? 'Preparing AI Models'
-                  : 'Welcome'}
-              </h1>
-              <p className="text-sm text-slate-500">
-                {status === 'loading_models' ? 'Loading neural network models into browser…'
-                  : status === 'face_setup' || status === 'face_capturing' ? 'Position your face clearly in the camera.'
-                  : status === 'face_login' || status === 'face_verifying' ? 'We\'ll compare your face with your stored data.'
-                  : 'Verify your identity to continue.'}
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col items-center justify-center px-4 relative z-10 pb-20">
+        <div className="w-full max-w-md animate-slideUp">
+          <div className="bg-white/80 backdrop-blur-xl border border-sky-100/80 rounded-3xl p-8 shadow-[0_20px_60px_rgba(14,165,233,0.08)]">
+            {/* Header Text */}
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Sign In</h1>
+              <p className="text-slate-500 mt-2 text-sm">
+                Secure access via Email OTP
               </p>
             </div>
 
-            {/* Status alerts */}
+            {/* Error Message */}
+            {(status === 'error' || status === 'invalid_otp') && errorMessage && (
+              <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-100 flex items-start gap-3 animate-fadeIn">
+                <AlertCircle className="text-red-500 mt-0.5 shrink-0" size={18} />
+                <p className="text-sm text-red-600 leading-relaxed">{errorMessage}</p>
+              </div>
+            )}
+
+            {/* Success Message */}
             {status === 'success' && (
-              <div className="mb-6 flex items-center gap-3 bg-emerald-550 border border-emerald-200 rounded-xl p-4 text-emerald-700 text-sm">
-                <CheckCircle2 size={18} className="shrink-0" />
-                <span>Verification successful! Redirecting…</span>
-              </div>
-            )}
-            {(status === 'error' || status === 'invalid_otp') && (
-              <div className="mb-6 flex items-center gap-3 bg-rose-50 border border-rose-200 rounded-xl p-4 text-rose-700 text-sm">
-                <AlertCircle size={18} className="shrink-0" />
-                <span>{errorMessage}</span>
+              <div className="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center gap-3 animate-fadeIn">
+                <CheckCircle2 className="text-emerald-500 shrink-0" size={20} />
+                <p className="text-sm font-medium text-emerald-700">Login successful! Redirecting...</p>
               </div>
             )}
 
-            {/* ─── MODEL LOADING PROGRESS ─────────────────────────────────── */}
-            {isLoadingModels && (
-              <div className="space-y-6">
-                <div className="flex flex-col gap-3">
-                  <div className="flex justify-between text-xs text-slate-500">
-                    <span>
-                      {modelProgress < 33 ? 'Loading face detector…'
-                        : modelProgress < 66 ? 'Loading landmark model…'
-                        : modelProgress < 100 ? 'Loading recognition model…'
-                        : '✅ Models ready!'}
-                    </span>
-                    <span className="text-sky-600 font-bold">{modelProgress}%</span>
-                  </div>
-
-                  {/* Progress bar */}
-                  <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-sky-500 to-blue-500 transition-all duration-700 ease-out"
-                      style={{ width: `${modelProgress}%` }}
-                    />
-                  </div>
-
-                  {/* Step dots */}
-                  <div className="flex items-center justify-between px-1 mt-1">
-                    {['Face Detector', 'Landmarks', 'Recognition'].map((label, i) => {
-                      const threshold = (i + 1) * 33
-                      const active = modelProgress >= threshold
-                      return (
-                        <div key={label} className="flex flex-col items-center gap-1">
-                          <div className={`w-3 h-3 rounded-full border-2 transition-all duration-300 ${active ? 'bg-sky-500 border-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.4)]' : 'bg-transparent border-sky-100'}`} />
-                          <span className={`text-[10px] ${active ? 'text-sky-600' : 'text-slate-400'}`}>{label}</span>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-center gap-2 text-slate-400 text-xs">
-                  <Loader2 size={14} className="animate-spin text-sky-500" />
-                  <span>This only happens once per session</span>
-                </div>
-              </div>
-            )}
-
-            {/* ─── FACE CAMERA VIEW ─────────────────────────────────────────── */}
-            {(status === 'face_setup' || status === 'face_capturing' || status === 'face_login' || status === 'face_verifying') && (
-              <div className="space-y-4 flex flex-col items-center">
-
-                {/* Camera feed with canvas overlay */}
-                <div className="relative w-56 h-56 rounded-full overflow-hidden border-2 border-sky-400 bg-slate-950 shadow-[0_8px_30px_rgba(14,165,233,0.1)]">
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    className="absolute inset-0 w-full h-full object-cover"
-                    style={{ transform: 'scaleX(-1)' }}
-                  />
-                  <canvas
-                    ref={canvasRef}
-                    className="absolute inset-0 w-full h-full"
-                    style={{ transform: 'scaleX(-1)' }}
-                  />
-
-                  {/* Face detected ring pulse */}
-                  {faceDetected && (
-                    <div className="absolute inset-0 rounded-full border-4 border-sky-400 animate-ping opacity-30 pointer-events-none" />
-                  )}
-
-                  {/* Scanning lines animation when verifying */}
-                  {isCapturing && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="absolute w-[80%] h-1 rounded-full bg-sky-400 shadow-[0_0_12px_rgba(56,189,248,0.8)] animate-scanline" />
-                    </div>
-                  )}
-                </div>
-
-                {/* Face status message */}
-                {faceMessage && (
-                  <p className={`text-sm text-center px-2 ${faceDetected ? 'text-emerald-600 font-medium' : 'text-amber-600 font-medium'}`}>
-                    {faceMessage}
-                  </p>
-                )}
-
-                {/* Verifying spinner */}
-                {isCapturing && (
-                  <div className="flex items-center gap-2 text-sky-500 text-sm">
-                    <Loader2 size={16} className="animate-spin" />
-                    <span>{status === 'face_verifying' ? 'Verifying biometrics…' : 'Capturing face vector…'}</span>
-                  </div>
-                )}
-
-                {/* Action buttons */}
-                {!isCapturing && (
-                  <div className="w-full space-y-3">
-                    {(status === 'face_setup') && (
-                      <>
-                        <button
-                          onClick={handleCaptureFace}
-                          disabled={!faceDetected}
-                          className="w-full bg-sky-500 disabled:opacity-40 disabled:cursor-not-allowed text-white hover:bg-sky-600 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 shadow-md shadow-sky-500/10 transition-all"
-                        >
-                          <Camera size={18} />
-                          {faceDetected ? 'Capture & Enable Face Login' : 'Waiting for face…'}
-                        </button>
-                        <button onClick={handleSkipFaceSetup} className="w-full bg-white border border-sky-200 hover:bg-slate-50 py-3 rounded-xl text-sm text-slate-600 transition-all">
-                          Skip for now
-                        </button>
-                      </>
-                    )}
-                    {status === 'face_login' && (
-                      <>
-                        <button
-                          onClick={handleVerifyFace}
-                          disabled={!faceDetected}
-                          className="w-full bg-sky-500 disabled:opacity-40 disabled:cursor-not-allowed text-white hover:bg-sky-600 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 shadow-md shadow-sky-500/10 transition-all"
-                        >
-                          <User size={18} />
-                          {faceDetected ? 'Verify My Face' : 'Waiting for face…'}
-                        </button>
-                        <button onClick={handleCancelFaceView} className="w-full bg-white border border-sky-200 hover:bg-slate-50 py-3 rounded-xl text-sm text-slate-600 transition-all">
-                          Use OTP instead
-                        </button>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ─── DEFAULT OTP / EMAIL FORM ─────────────────────────────────── */}
-            {!isFaceView && status !== 'success' && (
+            {/* ─── STEP 1: Details ────────────────────────────────────────── */}
+            {['idle', 'sending', 'error'].includes(status) && (
               <div className="space-y-5">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Email Address</label>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 px-1">Full Name</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Enter your name"
+                    className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-3.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all text-sm"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 px-1">Email Address</label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="e.g. john@example.com"
-                    disabled={['sending','verifying','otp_sent','invalid_otp'].includes(status)}
-                    className="w-full bg-white border border-sky-200/80 rounded-lg px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition-all"
+                    placeholder="name@company.com"
+                    className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-3.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all text-sm"
                   />
                 </div>
-
-                {!['otp_sent','invalid_otp','verifying'].includes(status) && (
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Full Name</label>
-                    <input
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="e.g. John Doe"
-                      disabled={['sending'].includes(status)}
-                      className="w-full bg-white border border-sky-200/80 rounded-lg px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition-all"
-                    />
-                  </div>
-                )}
-
-                {['otp_sent','verifying','invalid_otp'].includes(status) && (
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Enter OTP</label>
-                    <input
-                      type="text"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      placeholder="Enter the code sent to your email"
-                      disabled={['verifying','invalid_otp'].includes(status)}
-                      className="w-full bg-white border border-sky-200/80 rounded-lg px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition-all"
-                    />
-                  </div>
-                )}
-
-                {/* Buttons */}
-                {['idle','error','sending'].includes(status) && (
-                  <div className="space-y-3">
-                    <button
-                      onClick={handleGetOtp}
-                      disabled={status === 'sending'}
-                      className="w-full bg-sky-500 text-white hover:bg-sky-600 py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 shadow-md shadow-sky-500/10 transition-all disabled:opacity-50"
-                    >
-                      {status === 'sending' ? 'Sending OTP…' : 'Sign In with OTP'}
-                    </button>
-                    {isFaceEnabledForUser && (
-                      <button
-                        onClick={initiateFaceLogin}
-                        className="w-full bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100/60 py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all"
-                      >
-                        <Camera size={16} /> Sign In with Face
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {['otp_sent','verifying','invalid_otp'].includes(status) && (
-                  <div className="space-y-3">
-                    <button
-                      onClick={handleVerifyOtp}
-                      disabled={['verifying','invalid_otp'].includes(status) || !otp}
-                      className="w-full bg-sky-500 text-white hover:bg-sky-600 py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 shadow-md shadow-sky-500/10 transition-all disabled:opacity-50"
-                    >
-                      {status === 'verifying' ? 'Verifying…' : 'Verify OTP'}
-                    </button>
-                    <button
-                      onClick={() => { if (resendTimer === 0) handleGetOtp() }}
-                      disabled={resendTimer > 0 || status === 'verifying'}
-                      className="w-full border border-sky-200 text-slate-600 hover:bg-slate-50 py-3.5 rounded-xl text-sm font-semibold disabled:opacity-50 transition-all"
-                    >
-                      {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : 'Resend OTP'}
-                    </button>
-                  </div>
-                )}
+                <button
+                  onClick={handleGetOtp}
+                  disabled={!name.trim() || !email.includes('@')}
+                  className="w-full bg-sky-500 hover:bg-sky-600 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-sky-500/25 disabled:shadow-none mt-2 text-sm flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  Continue with Email
+                </button>
               </div>
             )}
 
+            {/* ─── STEP 2: OTP Entry ──────────────────────────────────────── */}
+            {['otp_sent', 'verifying', 'invalid_otp', 'success'].includes(status) && (
+              <div className="space-y-5 animate-fadeIn">
+                <div className="p-4 bg-sky-50 border border-sky-100 rounded-xl mb-2">
+                  <p className="text-sm text-sky-800 text-center">
+                    We've sent a code to <span className="font-semibold">{email}</span>
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 px-1">Security Code</label>
+                  <input
+                    type="text"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                    placeholder="Enter OTP"
+                    maxLength={6}
+                    className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-3.5 text-slate-800 text-center tracking-[0.5em] font-mono text-lg placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                  />
+                </div>
+                <button
+                  onClick={handleVerifyOtp}
+                  disabled={otp.length < 4 || status === 'verifying' || status === 'success'}
+                  className="w-full bg-sky-500 hover:bg-sky-600 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-sky-500/25 disabled:shadow-none mt-2 text-sm cursor-pointer"
+                >
+                  Verify Code
+                </button>
+
+                <div className="pt-4 text-center">
+                  <button
+                    onClick={handleGetOtp}
+                    disabled={resendTimer > 0}
+                    className="text-sm font-medium text-slate-500 hover:text-sky-600 disabled:text-slate-300 transition-colors cursor-pointer"
+                  >
+                    {resendTimer > 0 ? `Resend Code in ${resendTimer}s` : 'Resend Code'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-8 text-center">
+            <p className="text-xs text-slate-400">
+              By signing in, you agree to AgentOps terms of service and privacy policy.
+            </p>
           </div>
         </div>
       </main>
-
-      <footer className="py-6 border-t border-sky-100/50 text-center text-xs text-slate-400 relative z-10 bg-white/20">
-        AgentOps © 2026. All rights reserved.
-      </footer>
     </div>
   )
 }
