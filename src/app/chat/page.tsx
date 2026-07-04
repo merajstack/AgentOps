@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Loader } from '@/components/ui/loader'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/components/AuthProvider'
 
 export interface Message {
   id: string
@@ -40,21 +41,16 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const { user } = useAuth()
 
   // 1. Get user email on mount
   useEffect(() => {
-    const userStr = localStorage.getItem('agentops_user')
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr)
-        setUserEmail(user.email)
-      } catch (e) {
-        router.replace('/auth')
-      }
+    if (user) {
+      setUserEmail(user.email)
     } else {
       router.replace('/auth')
     }
-  }, [router])
+  }, [user, router])
 
   // 2. Fetch conversations from Supabase when email is known
   useEffect(() => {

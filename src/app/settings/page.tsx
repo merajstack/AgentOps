@@ -9,22 +9,16 @@ import { FullScreenLoader } from '@/components/ui/full-screen-loader'
 
 export default function SettingsPage() {
   const router = useRouter()
-  const { logout } = useAuth()
+  const { user, logout } = useAuth()
   const [userData, setUserData] = useState<{ id: string; name: string; email: string } | null>(null)
   const [isDeletingChat, setIsDeletingChat] = useState(false)
   const [message, setMessage] = useState('')
 
   useEffect(() => {
-    const user = localStorage.getItem('agentops_user')
     if (user) {
-      try {
-        const parsed = JSON.parse(user)
-        setUserData(parsed)
-      } catch {
-        console.error('Failed to parse user data')
-      }
+      setUserData(user)
     }
-  }, [])
+  }, [user])
 
   const handleLogout = async () => {
     await logout()

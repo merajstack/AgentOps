@@ -12,9 +12,22 @@ CREATE TABLE IF NOT EXISTS public.chatbots (
 
 ALTER TABLE public.chatbots ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow public access to chatbots for demo"
+-- Drop previous insecure policies if they exist
+DROP POLICY IF EXISTS "Allow public access to chatbots for demo" ON public.chatbots;
+DROP POLICY IF EXISTS "Users can manage their own chatbots" ON public.chatbots;
+DROP POLICY IF EXISTS "Anyone can read chatbots to use them" ON public.chatbots;
+
+-- Secure policy for INSERT, UPDATE, DELETE (owner only)
+CREATE POLICY "Users can manage their own chatbots"
 ON public.chatbots
 FOR ALL
+TO authenticated
+USING ( (auth.jwt() ->> 'email') = user_email );
+
+-- Policy for SELECT (public access needed so the API widget can read the training data)
+CREATE POLICY "Anyone can read chatbots to use them"
+ON public.chatbots
+FOR SELECT
 USING (true);
 
 CREATE INDEX IF NOT EXISTS idx_chatbots_api_key ON public.chatbots(api_key);
