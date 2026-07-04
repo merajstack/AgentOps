@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "../components/AuthProvider";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://agentops-auto.vercel.app"),
   title: "AgentOps - Automating India's Future",
   description: "AgentOps - Automating India's future. We back visionaries and craft ventures that define what comes next.",
   icons: {
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "AgentOps - Automating India's Future",
     description: "AgentOps - Automating India's future. We back visionaries and craft ventures that define what comes next.",
-    url: "https://agentops.in",
+    url: "https://agentops-auto.vercel.app",
     siteName: "AgentOps",
     images: [
       {

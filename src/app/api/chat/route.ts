@@ -9,7 +9,7 @@ We support 3 types of automations, each associated with a specific webhook:
 2. Invoice Generation Bot -> NEXT_PUBLIC_INVOICE_WEBHOOK_URL (Value: ${process.env.NEXT_PUBLIC_INVOICE_WEBHOOK_URL || 'https://workflow.ccbp.in/webhook/invoice-generation'})
 3. Lead Capture Bot -> NEXT_PUBLIC_LEADCAPTURE_WEBHOOK_URL (Value: ${process.env.NEXT_PUBLIC_LEADCAPTURE_WEBHOOK_URL || 'https://workflow.ccbp.in/webhook/lead-capture'})
 
-The chatbot icon image address is: /icon.png (serve from the same domain, e.g. https://yourdomain.com/icon.png). When generating widget HTML, use this icon as the bot avatar src.
+The chatbot icon image address is: /icon.png (serve from the same domain, e.g. https://agentops-auto.vercel.app/icon.png). When generating widget HTML, use this icon as the bot avatar src.
 
 === CRITICAL RULE — BUSINESS ENQUIRY / INVOICE / PROPOSAL ===
 If the user asks to generate, show, or display an image or diagram for the automation of a business inquiry, you MUST reply with this exact markdown to display the diagram:
@@ -65,8 +65,8 @@ CHAT WINDOW (expanded state):
 - Fixed input bar at the bottom: text input + Send button
 
 BOT AVATAR: Use this image URL as the bot's left-side avatar:
-https://yourdomain.com/icon.png
-(Replace "yourdomain.com" with the actual domain where the widget is hosted — e.g. https://agentops.in/icon.png)
+https://agentops-auto.vercel.app/icon.png
+(Replace "agentops-auto.vercel.app" with the actual domain where the widget is hosted)
 
 Bot messages appear on the LEFT (with avatar). User messages appear on the RIGHT (colored bubble).
 Each bot message appears after a 600ms typing delay to feel natural.
