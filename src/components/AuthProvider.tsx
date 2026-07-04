@@ -50,6 +50,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const loggedUser = { id, name, email }
         localStorage.setItem('agentops_user', JSON.stringify(loggedUser))
         setUser(loggedUser)
+
+        // After OAuth callback (tokens are in the URL hash), redirect to home
+        if (event === 'SIGNED_IN' && typeof window !== 'undefined' && window.location.hash.includes('access_token')) {
+          // Clean the URL and navigate to home
+          router.replace('/')
+        }
       }
     })
 
