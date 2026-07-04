@@ -41,22 +41,15 @@ export default function AuthPage() {
     }
     setStatus('sending'); setErrorMessage(''); setOtp('')
     try {
-      const webhookUrl = process.env.NEXT_PUBLIC_MAIN_OTP_WEBHOOK_URL || 'https://workflow.ccbp.in/webhook/main-otp'
-      const response = await fetch(webhookUrl, {
+      // Route through our server-side proxy to avoid CORS issues
+      const response = await fetch('/api/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, timestamp: new Date().toISOString() }),
+        body: JSON.stringify({ name, email }),
       })
-      if (!response.ok) throw new Error(`Failed with status: ${response.status}`)
-      const contentType = response.headers.get('content-type')
-      let receivedOtp = ''
-      if (contentType?.includes('application/json')) {
-        const data = await response.json()
-        receivedOtp = String(data.otp || data.code || data)
-      } else {
-        receivedOtp = await response.text()
-      }
-      setInternalOtp(receivedOtp.trim())
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || `Failed with status: ${response.status}`)
+      setInternalOtp(String(data.otp).trim())
       setStatus('otp_sent')
       setResendTimer(60)
     } catch (err: any) {
