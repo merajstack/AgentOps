@@ -2,17 +2,14 @@
 
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, User, Mail, LogOut, Trash2, CameraOff } from 'lucide-react'
+import { ArrowLeft, User, Mail, LogOut, Trash2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { deleteFaceData, hasFaceData } from '@/lib/faceStore'
 import { FullScreenLoader } from '@/components/ui/full-screen-loader'
 
 export default function SettingsPage() {
   const router = useRouter()
   const [userData, setUserData] = useState<{ id: string; name: string; email: string } | null>(null)
-  const [hasFace, setHasFace] = useState(false)
   const [isDeletingChat, setIsDeletingChat] = useState(false)
-  const [isDeletingFace, setIsDeletingFace] = useState(false)
   const [message, setMessage] = useState('')
 
   useEffect(() => {
@@ -21,8 +18,7 @@ export default function SettingsPage() {
       try {
         const parsed = JSON.parse(user)
         setUserData(parsed)
-        hasFaceData(parsed.email).then(setHasFace)
-      } catch (e) {
+      } catch {
         console.error('Failed to parse user data')
       }
     }
@@ -41,26 +37,10 @@ export default function SettingsPage() {
       const { error } = await supabase.from('conversations').delete().eq('user_email', userData.email)
       if (error) throw error
       setMessage('Chat history deleted successfully.')
-    } catch (err: any) {
+    } catch {
       setMessage('Failed to delete chat history.')
     } finally {
       setIsDeletingChat(false)
-      setTimeout(() => setMessage(''), 3000)
-    }
-  }
-
-  const handleDeleteFaceData = async () => {
-    if (!userData) return
-    setIsDeletingFace(true)
-    setMessage('')
-    try {
-      await deleteFaceData(userData.email)
-      setHasFace(false)
-      setMessage('Face data deleted successfully.')
-    } catch (err) {
-      setMessage('Failed to delete face data.')
-    } finally {
-      setIsDeletingFace(false)
       setTimeout(() => setMessage(''), 3000)
     }
   }
@@ -71,7 +51,7 @@ export default function SettingsPage() {
 
   return (
     <div className="relative min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col font-sans overflow-x-hidden">
-      {(isDeletingChat || isDeletingFace) && <FullScreenLoader />}
+      {isDeletingChat && <FullScreenLoader />}
 
       <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-sky-100/50 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-50/50 blur-[120px] pointer-events-none" />
@@ -91,7 +71,7 @@ export default function SettingsPage() {
 
       <main className="flex-1 flex justify-center py-12 px-4 relative z-10">
         <div className="w-full max-w-2xl">
-          
+
           <div className="mb-8">
             <h1 className="text-3xl font-light tracking-tight mb-2 text-slate-900">Account Settings</h1>
             <p className="text-slate-500 text-sm">Manage your profile and preferences.</p>
@@ -104,11 +84,11 @@ export default function SettingsPage() {
           )}
 
           <div className="bg-white/90 backdrop-blur-md border border-sky-100/80 rounded-2xl p-6 md:p-8 space-y-8 shadow-[0_15px_40px_rgba(14,165,233,0.06)]">
-            
+
             {/* Profile Section */}
             <div>
               <h2 className="text-lg font-medium border-b border-sky-100 pb-2 mb-6 text-slate-800">Profile Information</h2>
-              
+
               <div className="space-y-6">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
@@ -162,23 +142,6 @@ export default function SettingsPage() {
                   >
                     {isDeletingChat ? <span>Clearing...</span> : <Trash2 size={16} />}
                     <span>Clear Chats</span>
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between bg-slate-50 border border-sky-100 rounded-xl p-4">
-                  <div>
-                    <h3 className="text-sm font-medium text-slate-700">Face Verification Data</h3>
-                    <p className="text-xs text-slate-500 mt-1">
-                      {hasFace ? 'You have registered face data for login.' : 'No face data registered on this device.'}
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleDeleteFaceData}
-                    disabled={isDeletingFace || !hasFace}
-                    className="bg-white hover:bg-slate-100 text-slate-700 border border-sky-200/80 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isDeletingFace ? <span>Deleting...</span> : <CameraOff size={16} />}
-                    <span>Delete Face Data</span>
                   </button>
                 </div>
               </div>
