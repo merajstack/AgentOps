@@ -237,3 +237,17 @@ body {
 .animate-zoomIn {
   animation: zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+@keyframes scanline {
+  0% { transform: translateY(-110px); opacity: 0; }
+  10% { opacity: 1; }
+  40% { opacity: 1; }
+  50% { transform: translateY(110px); opacity: 0; }
+  60% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(-110px); opacity: 0; }
+}
+
+.animate-scanline {
+  animation: scanline 2.5s ease-in-out infinite;
+}

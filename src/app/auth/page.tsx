@@ -530,7 +530,7 @@ export default function AuthPage() {
                   {/* Scanning lines animation when verifying */}
                   {isCapturing && (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="absolute w-full h-0.5 bg-sky-400/60 animate-bounce" />
+                      <div className="absolute w-[80%] h-1 rounded-full bg-sky-400 shadow-[0_0_12px_rgba(56,189,248,0.8)] animate-scanline" />
                     </div>
                   )}
                 </div>
