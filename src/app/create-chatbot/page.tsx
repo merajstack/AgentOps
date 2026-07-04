@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Copy, Check, Bot, Database, Key, Link2, AlertCircle, ChevronDown, ChevronUp, Trash2, Plus } from 'lucide-react'
 import { Loader } from '@/components/ui/loader'
+import { supabase } from '@/lib/supabase'
 
 type PageState = 'form' | 'loading' | 'done' | 'error'
 
@@ -112,7 +113,20 @@ export default function CreateChatbotPage() {
       }
 
       await loadingPromise
+
+      // 1. Save to localStorage — powers the "My Chatbots" UI list
       saveChatbotToStorage(newChatbot)
+
+      // 2. Silently upsert to Supabase — powers the live /api/chatbot/:key endpoint
+      supabase.from('chatbots').upsert({
+        chatbot_name: chatbotName.trim(),
+        training_data: trainingData.trim(),
+        api_key: apiKey,
+        api_url: apiUrl,
+        user_email: 'anonymous@agentops-auto.vercel.app',
+      }, { onConflict: 'api_key' }).then(({ error }) => {
+        if (error) console.warn('[Supabase sync warning]', error.message)
+      })
 
       setLoadingProgress(100)
       setLoadingText('Done! 🎉')
