@@ -479,6 +479,13 @@ function EmptyState({ onQuestionClick }: { onQuestionClick: (q: string) => void 
 function ImageWithLoader({ src, alt }: { src: string; alt: string }) {
   const [loaded, setLoaded] = useState(false)
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoaded(true)
+    }, 2000)
+    return () => clearTimeout(timer)
+  }, [src])
+
   return (
     <>
       {!loaded && (
@@ -489,12 +496,9 @@ function ImageWithLoader({ src, alt }: { src: string; alt: string }) {
       <img 
         src={src} 
         alt={alt}
-        onLoad={() => {
-          setTimeout(() => setLoaded(true), 2000)
-        }}
         className={cn(
           "max-w-full rounded-lg mt-2 mb-2 transition-opacity duration-500",
-          loaded ? "opacity-100" : "opacity-0"
+          loaded ? "opacity-100" : "opacity-0 hidden"
         )} 
       />
     </>
