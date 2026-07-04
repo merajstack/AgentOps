@@ -4,6 +4,8 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 
+import { FullScreenLoader } from '@/components/ui/full-screen-loader'
+
 function ApiProcessContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -60,6 +62,8 @@ function ApiProcessContent() {
 
   return (
     <div className="relative min-h-screen bg-black text-white flex flex-col overflow-hidden font-sans">
+      {status === 'loading' && <FullScreenLoader />}
+
       {/* Background Gradients */}
       <div className="absolute top-[-15%] left-[-10%] w-[55%] h-[55%] rounded-full bg-cyan-950/20 blur-[140px] pointer-events-none" />
       <div className="absolute bottom-[-15%] right-[-10%] w-[55%] h-[55%] rounded-full bg-blue-950/20 blur-[140px] pointer-events-none" />
@@ -93,19 +97,6 @@ function ApiProcessContent() {
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center px-4 py-12 relative z-10">
         <div className="w-full max-w-lg">
-
-          {/* Loading State */}
-          {status === 'loading' && (
-            <div className="flex flex-col items-center justify-center gap-6 animate-fadeIn">
-              <div className="relative">
-                <div className="w-24 h-24 rounded-full border-2 border-cyan-500/30 flex items-center justify-center">
-                  <Loader2 size={40} className="text-cyan-400 animate-spin" />
-                </div>
-                <div className="absolute inset-0 w-24 h-24 rounded-full border-2 border-cyan-500/10 animate-ping" />
-              </div>
-              <p className="text-sm text-gray-400 tracking-wide">Processing request...</p>
-            </div>
-          )}
 
           {/* Success State */}
           {status === 'success' && (
@@ -275,10 +266,8 @@ function ApiProcessContent() {
 export default function ApiProcessPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <Loader2 size={32} className="text-cyan-400 animate-spin" />
-      </div>
-    }>
+        <FullScreenLoader />
+      }>
       <ApiProcessContent />
     </Suspense>
   )

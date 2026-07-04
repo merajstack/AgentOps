@@ -2,9 +2,10 @@
 
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, User, Mail, LogOut, Loader2, Trash2, CameraOff } from 'lucide-react'
+import { ArrowLeft, User, Mail, LogOut, Trash2, CameraOff } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { deleteFaceData, hasFaceData } from '@/lib/faceStore'
+import { FullScreenLoader } from '@/components/ui/full-screen-loader'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -65,15 +66,13 @@ export default function SettingsPage() {
   }
 
   if (!userData) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center text-white">
-        <Loader2 className="w-8 h-8 animate-spin text-cyan-500" />
-      </div>
-    )
+    return <FullScreenLoader />
   }
 
   return (
     <div className="relative min-h-screen bg-black text-white flex flex-col font-sans overflow-x-hidden">
+      {(isDeletingChat || isDeletingFace) && <FullScreenLoader />}
+
       <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-cyan-950/20 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-950/20 blur-[120px] pointer-events-none" />
 
@@ -161,7 +160,7 @@ export default function SettingsPage() {
                     disabled={isDeletingChat}
                     className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer flex items-center gap-2 disabled:opacity-50"
                   >
-                    {isDeletingChat ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                    {isDeletingChat ? <span>Clearing...</span> : <Trash2 size={16} />}
                     <span>Clear Chats</span>
                   </button>
                 </div>
@@ -178,7 +177,7 @@ export default function SettingsPage() {
                     disabled={isDeletingFace || !hasFace}
                     className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isDeletingFace ? <Loader2 size={16} className="animate-spin" /> : <CameraOff size={16} />}
+                    {isDeletingFace ? <span>Deleting...</span> : <CameraOff size={16} />}
                     <span>Delete Face Data</span>
                   </button>
                 </div>

@@ -4,6 +4,8 @@ import React, { useState } from 'react'
 import { ArrowLeft, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 
+import { FullScreenLoader } from '@/components/ui/full-screen-loader'
+
 export default function LeadFormPage() {
   const [formData, setFormData] = useState({
     name: '',
@@ -66,6 +68,8 @@ export default function LeadFormPage() {
 
   return (
     <div className="relative min-h-screen bg-black text-white flex flex-col justify-between overflow-x-hidden font-sans">
+      {status === 'submitting' && <FullScreenLoader />}
+
       {/* Background Gradients */}
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-cyan-950/20 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-950/20 blur-[120px] pointer-events-none" />
@@ -185,10 +189,7 @@ export default function LeadFormPage() {
                 className="w-full bg-white text-black hover:bg-gray-100 transition-colors py-3.5 rounded-lg text-sm font-semibold tracking-tight cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {status === 'submitting' ? (
-                  <>
-                    <Loader2 size={16} className="animate-spin" />
-                    <span>Submitting...</span>
-                  </>
+                  <span>Submitting...</span>
                 ) : status === 'success' ? (
                   <span>Submitted</span>
                 ) : (

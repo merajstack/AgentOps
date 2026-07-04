@@ -11,6 +11,8 @@ import {
   euclideanDistance,
 } from '@/lib/faceStore'
 
+import { FullScreenLoader } from '@/components/ui/full-screen-loader'
+
 // Dynamically loaded to avoid SSR issues
 let faceapi: typeof import('face-api.js') | null = null
 
@@ -405,9 +407,12 @@ export default function AuthPage() {
   const isFaceView = ['loading_models', 'face_setup', 'face_capturing', 'face_login', 'face_verifying'].includes(status)
   const isLoadingModels = status === 'loading_models'
   const isCapturing = status === 'face_capturing' || status === 'face_verifying'
+  const isGlobalLoading = ['sending', 'verifying', 'face_capturing', 'face_verifying'].includes(status)
 
   return (
     <div className="relative min-h-screen bg-black text-white flex flex-col justify-between overflow-x-hidden font-sans">
+      {isGlobalLoading && <FullScreenLoader />}
+
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-cyan-950/20 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-950/20 blur-[120px] pointer-events-none" />
 
@@ -634,7 +639,7 @@ export default function AuthPage() {
                       disabled={status === 'sending'}
                       className="w-full bg-white text-black hover:bg-gray-100 py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-50"
                     >
-                      {status === 'sending' ? <><Loader2 size={16} className="animate-spin" /> Sending OTP…</> : 'Sign In with OTP'}
+                      {status === 'sending' ? 'Sending OTP…' : 'Sign In with OTP'}
                     </button>
                     {isFaceEnabledForUser && (
                       <button
@@ -654,7 +659,7 @@ export default function AuthPage() {
                       disabled={['verifying','invalid_otp'].includes(status) || !otp}
                       className="w-full bg-white text-black py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-all"
                     >
-                      {status === 'verifying' ? <><Loader2 size={16} className="animate-spin" /> Verifying…</> : 'Verify OTP'}
+                      {status === 'verifying' ? 'Verifying…' : 'Verify OTP'}
                     </button>
                     <button
                       onClick={() => { if (resendTimer === 0) handleGetOtp() }}
