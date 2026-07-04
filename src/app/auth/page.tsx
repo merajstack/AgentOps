@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
 export default function AuthPage() {
   const router = useRouter()
@@ -43,7 +44,8 @@ export default function AuthPage() {
     setOtp('') // Reset OTP input
 
     try {
-      const response = await fetch('https://workflow.ccbp.in/webhook/main-otp', {
+      const webhookUrl = process.env.NEXT_PUBLIC_MAIN_OTP_WEBHOOK_URL || 'https://workflow.ccbp.in/webhook/main-otp'
+      const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -77,7 +79,7 @@ export default function AuthPage() {
     }
   }
 
-  const handleVerifyOtp = () => {
+  const handleVerifyOtp = async () => {
     if (!otp.trim()) {
       setStatus('error')
       setErrorMessage('Please enter the OTP.')
@@ -86,15 +88,27 @@ export default function AuthPage() {
 
     setStatus('verifying')
 
-    // Simulate verification delay
-    setTimeout(() => {
-      if (otp === internalOtp) {
+    // Keep the simulation delay for UI purposes
+    await new Promise((resolve) => setTimeout(resolve, 800))
+
+    if (otp === internalOtp) {
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .upsert(
+            { email: email.trim(), name: name.trim() },
+            { onConflict: 'email' }
+          )
+          .select()
+          .single()
+
+        if (error) throw error
+
         setStatus('success')
         
-        // Generate User ID and save to local storage
-        const userId = `user_${Math.floor(1000 + Math.random() * 9000)}`
+        // Save Supabase user id and data to local storage
         const userData = {
-          id: userId,
+          id: data.id || `user_${Math.floor(1000 + Math.random() * 9000)}`,
           name: name.trim(),
           email: email.trim(),
         }
@@ -103,11 +117,14 @@ export default function AuthPage() {
         setTimeout(() => {
           router.push('/')
         }, 1500)
-      } else {
-        setStatus('invalid_otp')
-        setErrorMessage('Invalid OTP. Please click "Resend OTP" to try again.')
+      } catch (err: any) {
+        setStatus('error')
+        setErrorMessage(err.message || 'Failed to save user data.')
       }
-    }, 800)
+    } else {
+      setStatus('invalid_otp')
+      setErrorMessage('Invalid OTP. Please click "Resend OTP" to try again.')
+    }
   }
 
   const handleResendOtp = () => {

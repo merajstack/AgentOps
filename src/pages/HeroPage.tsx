@@ -1,9 +1,10 @@
-'use client'
-
 import { FadeIn, AnimatedHeading } from '../components/Animations'
-import Link from 'next/link'
 
-export default function HeroPage() {
+interface HeroPageProps {
+  onStartChat: () => void
+}
+
+export default function HeroPage({ onStartChat }: HeroPageProps) {
   return (
     <div className="relative w-full h-screen overflow-hidden bg-black text-white">
       {/* Video Background */}
@@ -23,29 +24,22 @@ export default function HeroPage() {
           <div className="liquid-glass rounded-xl px-4 py-2 flex items-center justify-between">
             <span className="text-2xl font-semibold tracking-tight">AgentOps</span>
             <div className="hidden md:flex items-center gap-8">
-              <Link href="/walkthrough" className="text-sm text-white hover:text-gray-300 transition-colors">
-                Walkthrough
-              </Link>
-              <a href="#" className="text-sm text-white hover:text-gray-300 transition-colors">
-                Building
-              </a>
-              <Link href="/products" className="text-sm text-white hover:text-gray-300 transition-colors py-2">
-                Our Products
-              </Link>
+              {['Story', 'Investing', 'Building', 'Advisory'].map((link) => (
+                <a
+                  key={link}
+                  href="#"
+                  className="text-sm text-white hover:text-gray-300 transition-colors"
+                >
+                  {link}
+                </a>
+              ))}
             </div>
-            <div className="flex items-center gap-4">
-              <Link
-                href="/chat"
-                className="bg-white text-black px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors cursor-pointer hidden sm:block"
-              >
-                Start a Chat
-              </Link>
-              
-              {/* User Menu */}
-              <Link href="/settings" className="bg-white/10 hover:bg-white/20 border border-white/20 text-white w-10 h-10 rounded-full flex items-center justify-center transition-colors cursor-pointer">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              </Link>
-            </div>
+            <button
+              onClick={onStartChat}
+              className="bg-white text-black px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors cursor-pointer"
+            >
+              Start a Chat
+            </button>
           </div>
         </nav>
 
@@ -60,17 +54,20 @@ export default function HeroPage() {
               />
               <FadeIn delay={800} duration={1000}>
                 <p className="text-base md:text-lg text-gray-300 mb-5">
-                  We back visionaries and craft ventures that define what comes next.
+                  Why hire more people when you can automate the work?
                 </p>
               </FadeIn>
               <FadeIn delay={1200} duration={1000}>
                 <div className="flex flex-wrap gap-4">
-                  <Link
-                    href="/chat"
+                  <button
+                    onClick={onStartChat}
                     className="bg-white text-black px-8 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors cursor-pointer"
                   >
                     Start a Chat
-                  </Link>
+                  </button>
+                  <button className="liquid-glass border border-white/20 text-white px-8 py-3 rounded-lg font-medium hover:bg-white hover:text-black transition-all cursor-pointer">
+                    Explore Now
+                  </button>
                 </div>
               </FadeIn>
             </div>
