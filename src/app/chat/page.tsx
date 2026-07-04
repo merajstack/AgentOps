@@ -482,7 +482,7 @@ function ImageWithLoader({ src, alt }: { src: string; alt: string }) {
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoaded(true)
-    }, 2000)
+    }, 3000)
     return () => clearTimeout(timer)
   }, [src])
 
