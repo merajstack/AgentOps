@@ -558,9 +558,9 @@ function MessageBubble({ message, onEdit }: { message: Message; onEdit: (text: s
           `}
         >
           {message.content.split('\n').map((line, i) => (
-            <p key={i} className={i > 0 ? 'mt-2' : ''}>
+            <div key={i} className={i > 0 ? 'mt-2' : ''}>
               {renderBoldAndCode(line, isUser)}
-            </p>
+            </div>
           ))}
         </div>
 

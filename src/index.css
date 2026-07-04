@@ -81,7 +81,13 @@ body {
 :root {
   --wrapper-bg: #ffffff;
   --cube-color: #0000;
-  --highlight-color: #0ea5e9;
+  --highlight-color: #00cc44;
+}
+
+.dark {
+  --wrapper-bg: #000000;
+  --cube-color: #0000;
+  --highlight-color: #00ff88;
 }
 
 .wrapper-grid {
