@@ -59,6 +59,15 @@ body {
   background: rgba(14, 165, 233, 0.35);
 }
 
+/* ElevenLabs Convai floating widget */
+#convai-widget-root {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 99999;
+}
+
+
 /* Typing animation */
 @keyframes blink {
   0%, 100% { opacity: 1; }

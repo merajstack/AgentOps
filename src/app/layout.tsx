@@ -55,6 +55,17 @@ export default function RootLayout({
         <AuthProvider>
           {children}
         </AuthProvider>
+
+        {/* ElevenLabs Convai (global floating widget) */}
+        <div id="convai-widget-root">
+          {/* @ts-ignore custom element provided by ElevenLabs */}
+          <elevenlabs-convai agent-id="agent_2101kwq62agdegfvrsztcqfwwt0r" />
+        </div>
+        <script
+          src="https://unpkg.com/@elevenlabs/convai-widget-embed"
+          async
+          type="text/javascript"
+        ></script>
       </body>
     </html>
   );
