@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { ArrowLeft, Plus, Send, MessageSquare, Trash2, Menu, Copy, Check, Pencil, Paperclip, X } from 'lucide-react'
+import { ArrowLeft, Plus, Send, MessageSquare, Trash2, Menu, Copy, Check, Pencil, Paperclip, X, ZoomIn } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Loader } from '@/components/ui/loader'
@@ -35,6 +35,7 @@ export default function ChatPage() {
   const [isTyping, setIsTyping] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [attachment, setAttachment] = useState<File | null>(null)
+  const [lightboxImage, setLightboxImage] = useState<{ src: string; alt: string } | null>(null)
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -259,6 +260,7 @@ export default function ChatPage() {
   }
 
   return (
+    <>
     <div className="flex h-screen bg-white text-slate-800 overflow-hidden font-sans">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
@@ -372,6 +374,7 @@ export default function ChatPage() {
                   key={msg.id}
                   message={msg}
                   onEdit={(text) => setInput(text)}
+                  onZoom={(src, alt) => setLightboxImage({ src, alt })}
                 />
               ))}
               {isTyping && <TypingIndicator />}
@@ -443,6 +446,16 @@ export default function ChatPage() {
         </div>
       </main>
     </div>
+
+      {/* Image Lightbox */}
+      {lightboxImage && (
+        <ImageLightbox
+          src={lightboxImage.src}
+          alt={lightboxImage.alt}
+          onClose={() => setLightboxImage(null)}
+        />
+      )}
+    </>
   )
 }
 
@@ -476,7 +489,51 @@ function EmptyState({ onQuestionClick }: { onQuestionClick: (q: string) => void 
   )
 }
 
-function ImageWithLoader({ src, alt }: { src: string; alt: string }) {
+// ── IMAGE LIGHTBOX OVERLAY ────────────────────────────────────────────────────
+function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = ''
+    }
+  }, [onClose])
+
+  return (
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn"
+      onClick={onClose}
+    >
+      {/* Close button */}
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer z-10"
+      >
+        <X size={18} />
+      </button>
+
+      {/* Image — stop propagation so clicking image itself doesn't close */}
+      <div
+        className="relative max-w-[90vw] max-h-[90vh] flex items-center justify-center"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <img
+          src={src}
+          alt={alt}
+          className="max-w-full max-h-[90vh] rounded-xl shadow-2xl object-contain animate-zoomIn"
+        />
+        {alt && (
+          <p className="absolute bottom-[-32px] left-0 right-0 text-center text-xs text-white/50">{alt}</p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ── IMAGE WITH LOADER + ZOOM ──────────────────────────────────────────────────
+function ImageWithLoader({ src, alt, onZoom }: { src: string; alt: string; onZoom: (src: string, alt: string) => void }) {
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
@@ -493,19 +550,28 @@ function ImageWithLoader({ src, alt }: { src: string; alt: string }) {
           <Loader />
         </div>
       )}
-      <img 
-        src={src} 
-        alt={alt}
-        className={cn(
-          "max-w-full rounded-lg mt-2 mb-2 transition-opacity duration-500",
-          loaded ? "opacity-100" : "opacity-0 hidden"
-        )} 
-      />
+      <div className="relative group/img inline-block mt-2 mb-2">
+        <img
+          src={src}
+          alt={alt}
+          onClick={() => onZoom(src, alt)}
+          className={cn(
+            "max-w-full rounded-lg cursor-zoom-in transition-opacity duration-500",
+            loaded ? "opacity-100" : "opacity-0 hidden"
+          )}
+        />
+        {/* zoom hint badge */}
+        {loaded && (
+          <div className="absolute bottom-2 right-2 opacity-0 group-hover/img:opacity-100 transition-opacity duration-150 bg-black/50 text-white text-[10px] flex items-center gap-1 px-1.5 py-0.5 rounded-md pointer-events-none">
+            <ZoomIn size={10} /> Click to expand
+          </div>
+        )}
+      </div>
     </>
   )
 }
 
-function renderBoldAndCode(text: string, isUser: boolean) {
+function renderBoldAndCode(text: string, isUser: boolean, onZoom: (src: string, alt: string) => void) {
   if (text.trim().startsWith('```') || text.includes('```')) {
     return <code className="block bg-slate-900 text-slate-100 p-3 rounded-lg border border-slate-800 text-xs font-mono whitespace-pre leading-relaxed">{text.replace(/```/g, '')}</code>
   }
@@ -516,7 +582,7 @@ function renderBoldAndCode(text: string, isUser: boolean) {
       const altMatch = part.match(/!\[(.*?)\]/)
       const urlMatch = part.match(/\((.*?)\)/)
       if (altMatch && urlMatch) {
-        return <ImageWithLoader key={i} src={urlMatch[1]} alt={altMatch[1]} />
+        return <ImageWithLoader key={i} src={urlMatch[1]} alt={altMatch[1]} onZoom={onZoom} />
       }
     }
     if (part.startsWith('**') && part.endsWith('**')) {
@@ -529,7 +595,7 @@ function renderBoldAndCode(text: string, isUser: boolean) {
   })
 }
 
-function MessageBubble({ message, onEdit }: { message: Message; onEdit: (text: string) => void }) {
+function MessageBubble({ message, onEdit, onZoom }: { message: Message; onEdit: (text: string) => void; onZoom: (src: string, alt: string) => void }) {
   const isUser = message.role === 'user'
   const [copied, setCopied] = useState(false)
 
@@ -563,7 +629,7 @@ function MessageBubble({ message, onEdit }: { message: Message; onEdit: (text: s
         >
           {message.content.split('\n').map((line, i) => (
             <div key={i} className={i > 0 ? 'mt-2' : ''}>
-              {renderBoldAndCode(line, isUser)}
+              {renderBoldAndCode(line, isUser, onZoom)}
             </div>
           ))}
         </div>
