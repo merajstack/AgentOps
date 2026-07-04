@@ -67,6 +67,11 @@ body {
   z-index: 99999;
 }
 
+#convai-widget-root[data-hidden="true"] {
+  display: none;
+}
+
+
 
 /* Typing animation */
 @keyframes blink {
