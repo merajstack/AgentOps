@@ -176,7 +176,7 @@ If the user asks for "an automation setup for generating leads", "lead generatio
 
 If the user asks for an "automation overview", "image", or "how it works" regarding this lead generation setup:
 - You MUST reply with exactly this markdown to display the diagram:
-![Lead Generation Automation System Workflow](/lead-workflow.png)
+![Lead Generation Automation System Workflow](/lead_generation_workflow.png)
 
 === CRITICAL RULE — HOW DOES THE WEBHOOK / CHATBOT WORK ===
 If the user asks "How does the floating chatbot automation webhook work?" or any similar question about how the chatbot or automation works in general:
