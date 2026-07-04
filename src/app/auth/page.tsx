@@ -16,7 +16,7 @@ import { FullScreenLoader } from '@/components/ui/full-screen-loader'
 // Dynamically loaded to avoid SSR issues
 let faceapi: typeof import('face-api.js') | null = null
 
-const MODELS_URL = '/models'
+const getModelsUrl = () => typeof window !== 'undefined' ? `${window.location.origin}/models` : '/models'
 const FACE_MATCH_THRESHOLD = 0.55
 
 type AuthStatus =
@@ -113,17 +113,17 @@ export default function AuthPage() {
       const steps = [
         {
           label: 'Loading face detector…',
-          fn: () => faceapi!.nets.tinyFaceDetector.loadFromUri(MODELS_URL),
+          fn: () => faceapi!.nets.tinyFaceDetector.loadFromUri(getModelsUrl()),
           progress: 33,
         },
         {
           label: 'Loading landmark model…',
-          fn: () => faceapi!.nets.faceLandmark68Net.loadFromUri(MODELS_URL),
+          fn: () => faceapi!.nets.faceLandmark68Net.loadFromUri(getModelsUrl()),
           progress: 66,
         },
         {
           label: 'Loading recognition model…',
-          fn: () => faceapi!.nets.faceRecognitionNet.loadFromUri(MODELS_URL),
+          fn: () => faceapi!.nets.faceRecognitionNet.loadFromUri(getModelsUrl()),
           progress: 100,
         },
       ]
@@ -137,7 +137,8 @@ export default function AuthPage() {
       return true
     } catch (err) {
       setStatus('error')
-      setErrorMessage('Failed to load face detection models. Please refresh and try again.')
+      const msg = err instanceof Error ? err.message : String(err)
+      setErrorMessage(`Failed to load face detection models: ${msg}. Please refresh and try again.`)
       return false
     }
   }
