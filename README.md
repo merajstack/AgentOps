@@ -4,9 +4,9 @@
 
 ### Multi-Agent Business Automation Platform
 
-<p>
-Automate customer inquiries, manager approvals, proposal generation, PDF creation, and invoice delivery with AI-powered workflows.
-</p>
+<b>
+ Developed by :@merakstack,@shiva-code-og,@vignesh-0314,@navaneesh
+</b>
 
 <p>
 <img src="https://img.shields.io/badge/Next.js-000?style=for-the-badge&logo=nextdotjs">
