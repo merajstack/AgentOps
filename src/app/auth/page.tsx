@@ -8,7 +8,6 @@ import { supabase } from '@/lib/supabase'
 export default function AuthPage() {
   const router = useRouter()
 
-  const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -26,35 +25,6 @@ export default function AuthPage() {
     } catch (err: any) {
       setLoading(false)
       setErrorMessage(err.message || 'Failed to initialize Google login.')
-    }
-  }
-
-  const handleGuestLogin = () => {
-    if (!name.trim()) {
-      setErrorMessage('Name is required for guest entry.')
-      return
-    }
-
-    setLoading(true)
-    setErrorMessage('')
-
-    try {
-      const guestId = 'guest_' + Math.random().toString(36).substr(2, 9)
-      const guestUser = {
-        id: guestId,
-        name: name.trim(),
-        email: 'guest@agentops-auto.vercel.app',
-      }
-
-      localStorage.setItem('agentops_user', JSON.stringify(guestUser))
-      
-      // Simulate slight delay for premium animation transition
-      setTimeout(() => {
-        router.push('/')
-      }, 1000)
-    } catch (err: any) {
-      setLoading(false)
-      setErrorMessage('Failed to enter as guest. Please try again.')
     }
   }
 
@@ -137,35 +107,25 @@ export default function AuthPage() {
                 <span>Continue with Google</span>
               </button>
 
-              <div className="relative flex items-center justify-center">
+              <div className="relative flex items-center justify-center pt-2">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-slate-200"></div>
                 </div>
                 <span className="relative px-3 bg-white text-xs text-slate-400 font-semibold uppercase tracking-wider">
-                  Or
+                  Already Authenticated?
                 </span>
               </div>
 
-              {/* Guest / Instant Name Entry */}
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 px-1">
-                    Your Name
-                  </label>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Enter your name for quick access"
-                    className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-3.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all text-sm"
-                  />
-                </div>
+              {/* Redirect for Authenticated Users */}
+              <div className="space-y-4 text-center">
+                <p className="text-xs font-medium text-slate-600">
+                  Notice: if you have authenticated using google then click the button below
+                </p>
                 <button
-                  onClick={handleGuestLogin}
-                  disabled={!name.trim()}
-                  className="w-full bg-sky-500 hover:bg-sky-600 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-sky-500/25 disabled:shadow-none text-sm cursor-pointer"
+                  onClick={() => window.location.href = 'https://agentops-auto.vercel.app'}
+                  className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-red-500/25 text-sm cursor-pointer"
                 >
-                  Enter as Guest
+                  Continue to Application
                 </button>
               </div>
             </div>
