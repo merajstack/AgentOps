@@ -1,97 +1,62 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Loader2, AlertCircle, Sparkles } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { FullScreenLoader } from '@/components/ui/full-screen-loader'
-
-type AuthStatus =
-  | 'idle'
-  | 'sending'
-  | 'otp_sent'
-  | 'verifying'
-  | 'success'
-  | 'error'
-  | 'invalid_otp'
 
 export default function AuthPage() {
   const router = useRouter()
 
   const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [otp, setOtp] = useState('')
-  const [status, setStatus] = useState<AuthStatus>('idle')
+  const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
-  const [internalOtp, setInternalOtp] = useState<string | null>(null)
-  const [resendTimer, setResendTimer] = useState(0)
 
-  // ─── OTP timer ───────────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (resendTimer <= 0) return
-    const interval = setInterval(() => setResendTimer((p) => p - 1), 1000)
-    return () => clearInterval(interval)
-  }, [resendTimer])
-
-  // ─── OTP Flow ────────────────────────────────────────────────────────────────
-  const handleGetOtp = async () => {
-    if (!name.trim()) { setStatus('error'); setErrorMessage('Name is required.'); return }
-    if (!email.includes('@') || !email.includes('.')) {
-      setStatus('error'); setErrorMessage('Please enter a valid email address.'); return
-    }
-    setStatus('sending'); setErrorMessage(''); setOtp('')
+  const handleGoogleLogin = async () => {
+    setLoading(true)
+    setErrorMessage('')
     try {
-      // Route through our server-side proxy to avoid CORS issues
-      const response = await fetch('/api/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email }),
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
+        },
       })
-      const data = await response.json()
-      if (!response.ok) throw new Error(data.error || `Failed with status: ${response.status}`)
-      setInternalOtp(String(data.otp).trim())
-      setStatus('otp_sent')
-      setResendTimer(60)
-    } catch (err: any) {
-      setStatus('error')
-      setErrorMessage(err.message || 'Something went wrong while sending OTP.')
-    }
-  }
-
-  const completeLogin = async (loginEmail: string, loginName: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .upsert({ email: loginEmail.trim(), name: loginName.trim() }, { onConflict: 'email' })
-        .select()
-        .single()
       if (error) throw error
-      setStatus('success')
-      localStorage.setItem(
-        'agentops_user',
-        JSON.stringify({ id: data.id, name: loginName.trim(), email: loginEmail.trim() })
-      )
-      setTimeout(() => router.push('/'), 1500)
     } catch (err: any) {
-      setStatus('error')
-      setErrorMessage(err.message || 'Failed to save user data.')
+      setLoading(false)
+      setErrorMessage(err.message || 'Failed to initialize Google login.')
     }
   }
 
-  const handleVerifyOtp = async () => {
-    if (!otp.trim()) { setStatus('error'); setErrorMessage('Please enter the OTP.'); return }
-    setStatus('verifying')
-    await new Promise((r) => setTimeout(r, 800))
-    if (otp === internalOtp) {
-      await completeLogin(email, name)
-    } else {
-      setStatus('invalid_otp')
-      setErrorMessage('Invalid OTP. Please click "Resend OTP" to try again.')
+  const handleGuestLogin = () => {
+    if (!name.trim()) {
+      setErrorMessage('Name is required for guest entry.')
+      return
+    }
+
+    setLoading(true)
+    setErrorMessage('')
+
+    try {
+      const guestId = 'guest_' + Math.random().toString(36).substr(2, 9)
+      const guestUser = {
+        id: guestId,
+        name: name.trim(),
+        email: 'guest@agentops-auto.vercel.app',
+      }
+
+      localStorage.setItem('agentops_user', JSON.stringify(guestUser))
+      
+      // Simulate slight delay for premium animation transition
+      setTimeout(() => {
+        router.push('/')
+      }, 1000)
+    } catch (err: any) {
+      setLoading(false)
+      setErrorMessage('Failed to enter as guest. Please try again.')
     }
   }
-
-  // ─── UI Rendering ────────────────────────────────────────────────────────────
-  const isGlobalLoading = ['sending', 'verifying'].includes(status)
 
   return (
     <div className="relative min-h-screen bg-[#f8fafc] flex flex-col font-sans overflow-hidden">
@@ -100,11 +65,11 @@ export default function AuthPage() {
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-50/50 blur-[120px] pointer-events-none" />
 
       {/* Global Loader Overlay */}
-      {isGlobalLoading && (
+      {loading && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/60 backdrop-blur-md animate-fadeIn">
-          <FullScreenLoader />
-          <p className="mt-6 text-sm font-semibold tracking-wider text-sky-600 animate-pulse">
-            {status === 'sending' ? 'SENDING OTP...' : 'VERIFYING...'}
+          <Loader2 className="w-10 h-10 text-sky-500 animate-spin" />
+          <p className="mt-4 text-sm font-semibold tracking-wider text-sky-600 animate-pulse">
+            LOADING SECURE ACCESS...
           </p>
         </div>
       )}
@@ -124,107 +89,91 @@ export default function AuthPage() {
       <main className="flex-1 flex flex-col items-center justify-center px-4 relative z-10 pb-20">
         <div className="w-full max-w-md animate-slideUp">
           <div className="bg-white/80 backdrop-blur-xl border border-sky-100/80 rounded-3xl p-8 shadow-[0_20px_60px_rgba(14,165,233,0.08)]">
+            
             {/* Header Text */}
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Sign In</h1>
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-sky-50 text-sky-500 mb-4 border border-sky-100 shadow-sm shadow-sky-500/5">
+                <Sparkles size={20} />
+              </div>
+              <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Access AgentOps</h1>
               <p className="text-slate-500 mt-2 text-sm">
-                Secure access via Email OTP
+                Choose your preferred sign in method
               </p>
             </div>
 
             {/* Error Message */}
-            {(status === 'error' || status === 'invalid_otp') && errorMessage && (
+            {errorMessage && (
               <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-100 flex items-start gap-3 animate-fadeIn">
                 <AlertCircle className="text-red-500 mt-0.5 shrink-0" size={18} />
                 <p className="text-sm text-red-600 leading-relaxed">{errorMessage}</p>
               </div>
             )}
 
-            {/* Success Message */}
-            {status === 'success' && (
-              <div className="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center gap-3 animate-fadeIn">
-                <CheckCircle2 className="text-emerald-500 shrink-0" size={20} />
-                <p className="text-sm font-medium text-emerald-700">Login successful! Redirecting...</p>
-              </div>
-            )}
+            {/* Sign in with Google (Primary) */}
+            <div className="space-y-6">
+              <button
+                onClick={handleGoogleLogin}
+                className="w-full bg-white hover:bg-slate-50 text-slate-700 font-semibold py-3.5 px-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-center gap-3 transition-all cursor-pointer text-sm"
+              >
+                {/* Google Logo SVG */}
+                <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.67 1.55 14.98 1 12 1 7.35 1 3.37 3.67 1.39 7.56l3.85 2.99c.92-2.75 3.48-4.51 6.76-4.51z"
+                  />
+                  <path
+                    fill="#4285F4"
+                    d="M23.49 12.27c0-.81-.07-1.59-.2-2.27H12v4.51h6.46c-.29 1.48-1.14 2.73-2.4 3.58l3.72 2.88c2.18-2 3.71-4.96 3.71-8.7z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.24 14.45c-.24-.72-.38-1.5-.38-2.3s.14-1.58.38-2.3L1.39 7.56C.5 9.36 0 11.4 0 13.5s.5 4.14 1.39 5.94l3.85-2.99z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.72-2.88c-1.04.7-2.38 1.12-4.24 1.12-3.28 0-5.84-1.76-6.76-4.51L1.39 16.76C3.37 20.33 7.35 23 12 23z"
+                  />
+                </svg>
+                <span>Continue with Google</span>
+              </button>
 
-            {/* ─── STEP 1: Details ────────────────────────────────────────── */}
-            {['idle', 'sending', 'error'].includes(status) && (
-              <div className="space-y-5">
+              <div className="relative flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-slate-200"></div>
+                </div>
+                <span className="relative px-3 bg-white text-xs text-slate-400 font-semibold uppercase tracking-wider">
+                  Or
+                </span>
+              </div>
+
+              {/* Guest / Instant Name Entry */}
+              <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 px-1">Full Name</label>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 px-1">
+                    Your Name
+                  </label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Enter your name"
-                    className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-3.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all text-sm"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 px-1">Email Address</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@company.com"
+                    placeholder="Enter your name for quick access"
                     className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-3.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all text-sm"
                   />
                 </div>
                 <button
-                  onClick={handleGetOtp}
-                  disabled={!name.trim() || !email.includes('@')}
-                  className="w-full bg-sky-500 hover:bg-sky-600 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-sky-500/25 disabled:shadow-none mt-2 text-sm flex items-center justify-center gap-2 cursor-pointer"
+                  onClick={handleGuestLogin}
+                  disabled={!name.trim()}
+                  className="w-full bg-sky-500 hover:bg-sky-600 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-sky-500/25 disabled:shadow-none text-sm cursor-pointer"
                 >
-                  Continue with Email
+                  Enter as Guest
                 </button>
               </div>
-            )}
-
-            {/* ─── STEP 2: OTP Entry ──────────────────────────────────────── */}
-            {['otp_sent', 'verifying', 'invalid_otp', 'success'].includes(status) && (
-              <div className="space-y-5 animate-fadeIn">
-                <div className="p-4 bg-sky-50 border border-sky-100 rounded-xl mb-2">
-                  <p className="text-sm text-sky-800 text-center">
-                    We've sent a code to <span className="font-semibold">{email}</span>
-                  </p>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 px-1">Security Code</label>
-                  <input
-                    type="text"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                    placeholder="Enter OTP"
-                    maxLength={6}
-                    className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 py-3.5 text-slate-800 text-center tracking-[0.5em] font-mono text-lg placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
-                  />
-                </div>
-                <button
-                  onClick={handleVerifyOtp}
-                  disabled={otp.length < 4 || status === 'verifying' || status === 'success'}
-                  className="w-full bg-sky-500 hover:bg-sky-600 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-sky-500/25 disabled:shadow-none mt-2 text-sm cursor-pointer"
-                >
-                  Verify Code
-                </button>
-
-                <div className="pt-4 text-center">
-                  <button
-                    onClick={handleGetOtp}
-                    disabled={resendTimer > 0}
-                    className="text-sm font-medium text-slate-500 hover:text-sky-600 disabled:text-slate-300 transition-colors cursor-pointer"
-                  >
-                    {resendTimer > 0 ? `Resend Code in ${resendTimer}s` : 'Resend Code'}
-                  </button>
-                </div>
-              </div>
-            )}
+            </div>
           </div>
 
           <div className="mt-8 text-center">
             <p className="text-xs text-slate-400">
-              By signing in, you agree to AgentOps terms of service and privacy policy.
+              Your session is saved locally. Google Sign In enables server-backed persistent profile.
             </p>
           </div>
         </div>

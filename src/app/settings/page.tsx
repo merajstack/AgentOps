@@ -4,10 +4,12 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, User, Mail, LogOut, Trash2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/components/AuthProvider'
 import { FullScreenLoader } from '@/components/ui/full-screen-loader'
 
 export default function SettingsPage() {
   const router = useRouter()
+  const { logout } = useAuth()
   const [userData, setUserData] = useState<{ id: string; name: string; email: string } | null>(null)
   const [isDeletingChat, setIsDeletingChat] = useState(false)
   const [message, setMessage] = useState('')
@@ -24,9 +26,8 @@ export default function SettingsPage() {
     }
   }, [])
 
-  const handleLogout = () => {
-    localStorage.removeItem('agentops_user')
-    router.replace('/auth')
+  const handleLogout = async () => {
+    await logout()
   }
 
   const handleDeleteChatHistory = async () => {

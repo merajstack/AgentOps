@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { FullScreenLoader } from '@/components/ui/full-screen-loader'
+import { supabase } from '@/lib/supabase'
 
 interface AuthContextType {
   user: any | null
@@ -35,7 +36,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       setLoading(false)
     }
+
+    // 1. Initial check of local storage
     checkAuth()
+
+    // 2. Subscribe to Supabase auth events (to sync Google Auth sessions to localStorage)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        const email = session.user.email || ''
+        const name = session.user.user_metadata?.full_name || session.user.user_metadata?.name || email.split('@')[0]
+        const id = session.user.id
+        
+        const loggedUser = { id, name, email }
+        localStorage.setItem('agentops_user', JSON.stringify(loggedUser))
+        setUser(loggedUser)
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [pathname])
 
   useEffect(() => {
@@ -47,9 +67,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user, loading, pathname, router])
 
-  const logout = () => {
+  const logout = async () => {
     localStorage.removeItem('agentops_user')
     setUser(null)
+    await supabase.auth.signOut()
     router.replace('/auth')
   }
 
