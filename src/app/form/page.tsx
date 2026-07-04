@@ -89,55 +89,55 @@ export default function FormPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-black text-white flex flex-col justify-between overflow-x-hidden font-sans">
+    <div className="relative min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col justify-between overflow-x-hidden font-sans">
       {status === 'submitting' && <FullScreenLoader />}
 
       {/* Background Gradients */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-cyan-950/20 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-950/20 blur-[120px] pointer-events-none" />
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-sky-100/50 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-50/50 blur-[120px] pointer-events-none" />
 
       {/* Header / Navbar */}
       <header className="px-6 md:px-12 lg:px-16 pt-6 relative z-10">
-        <div className="liquid-glass rounded-xl px-4 py-2 flex items-center justify-between">
+        <div className="bg-white/80 backdrop-blur-md border border-sky-100/80 shadow-sm rounded-xl px-4 py-2 flex items-center justify-between">
           <button
             onClick={() => router.push('/')}
-            className="flex items-center gap-2 text-sm text-slate-300 hover:text-white transition-colors cursor-pointer"
+            className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition-colors cursor-pointer font-medium"
           >
             <ArrowLeft size={16} />
             <span>Back to Home</span>
           </button>
-          <span className="text-sm font-semibold tracking-wider text-cyan-400">PROCUREMENT PORTAL</span>
+          <span className="text-sm font-semibold tracking-wider text-sky-600">PROCUREMENT PORTAL</span>
         </div>
       </header>
 
       {/* Main Container */}
       <main className="flex-1 flex items-center justify-center px-4 py-12 relative z-10">
         <div className="w-full max-w-xl">
-          <div className="liquid-glass border border-white/10 rounded-2xl p-8 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+          <div className="bg-white/90 backdrop-blur-md border border-sky-100/80 rounded-2xl p-8 md:p-10 shadow-[0_15px_40px_rgba(14,165,233,0.06)]">
             
             {/* Header Title */}
             <div className="text-center mb-8">
-              <h1 className="text-2xl md:text-3xl font-normal tracking-tight text-white mb-2">
+              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-slate-900 mb-2">
                 Order Details Form
               </h1>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-slate-500">
                 Procurement Submission
               </p>
-              <p className="text-xs text-gray-500 mt-1 max-w-sm mx-auto">
+              <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
                 Provide the details of your inquiry below to instantly submit them to our manager.
               </p>
             </div>
 
             {/* Submission alerts */}
             {status === 'success' && (
-              <div className="mb-6 flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-emerald-400 text-sm">
+              <div className="mb-6 flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-emerald-700 text-sm">
                 <CheckCircle2 size={18} className="shrink-0" />
                 <span>Procurement form submitted successfully to the webhook!</span>
               </div>
             )}
 
             {status === 'error' && (
-              <div className="mb-6 flex items-center gap-3 bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-rose-400 text-sm">
+              <div className="mb-6 flex items-center gap-3 bg-rose-50 border border-rose-200 rounded-xl p-4 text-rose-700 text-sm">
                 <AlertCircle size={18} className="shrink-0" />
                 <span>{errorMessage}</span>
               </div>
@@ -148,7 +148,7 @@ export default function FormPage() {
               
               {/* Company Name */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
                   Company Name
                 </label>
                 <input
@@ -158,7 +158,7 @@ export default function FormPage() {
                   onChange={handleChange}
                   placeholder="e.g. Acme Corp"
                   disabled={status === 'submitting'}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500/50 transition-colors"
+                  className="w-full bg-white border border-sky-200/80 rounded-lg px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition-all"
                 />
               </div>
 
@@ -167,7 +167,7 @@ export default function FormPage() {
                 
                 {/* Price per Unit */}
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
                     Price per Unit (USD)
                   </label>
                   <input
@@ -177,13 +177,13 @@ export default function FormPage() {
                     onChange={handleChange}
                     placeholder="e.g. 150.00"
                     disabled={status === 'submitting'}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500/50 transition-colors"
+                    className="w-full bg-white border border-sky-200/80 rounded-lg px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition-all"
                   />
                 </div>
 
                 {/* Quantity */}
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
                     Quantity (Number of Units)
                   </label>
                   <input
@@ -193,14 +193,14 @@ export default function FormPage() {
                     onChange={handleChange}
                     placeholder="e.g. 500"
                     disabled={status === 'submitting'}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500/50 transition-colors"
+                    className="w-full bg-white border border-sky-200/80 rounded-lg px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition-all"
                   />
                 </div>
               </div>
 
               {/* Payment Terms */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
                   Payment Terms / Conditions
                 </label>
                 <textarea
@@ -210,13 +210,13 @@ export default function FormPage() {
                   placeholder="e.g. Net 30, 50% advance / 50% on delivery"
                   rows={2}
                   disabled={status === 'submitting'}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500/50 transition-colors resize-none"
+                  className="w-full bg-white border border-sky-200/80 rounded-lg px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition-all resize-none"
                 />
               </div>
 
               {/* Consumer Email */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
                   Consumer Email Address
                 </label>
                 <input
@@ -226,7 +226,7 @@ export default function FormPage() {
                   onChange={handleChange}
                   placeholder="e.g. purchaser@company.com"
                   disabled={status === 'submitting'}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500/50 transition-colors"
+                  className="w-full bg-white border border-sky-200/80 rounded-lg px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition-all"
                 />
               </div>
 
@@ -234,7 +234,7 @@ export default function FormPage() {
               <button
                 type="submit"
                 disabled={status === 'submitting'}
-                className="w-full bg-white text-black hover:bg-gray-100 transition-colors py-3.5 rounded-lg text-sm font-semibold tracking-tight cursor-pointer flex items-center justify-center gap-2"
+                className="w-full bg-sky-500 text-white hover:bg-sky-600 transition-all py-3.5 rounded-lg text-sm font-semibold tracking-tight cursor-pointer flex items-center justify-center gap-2 shadow-md shadow-sky-500/10"
               >
                 {status === 'submitting' ? 'Submitting to Manager...' : 'Submit Procurement Form'}
               </button>
@@ -246,7 +246,7 @@ export default function FormPage() {
       </main>
 
       {/* Footer */}
-      <footer className="py-6 border-t border-white/5 text-center text-xs text-gray-600 relative z-10">
+      <footer className="py-6 border-t border-sky-100/50 text-center text-xs text-slate-400 relative z-10 bg-white/20">
         AgentOps © 2026 Procurement Portal. All rights reserved.
       </footer>
     </div>

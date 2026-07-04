@@ -9,8 +9,8 @@ body {
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #000;
-  color: #fff;
+  background: #fff;
+  color: #1e293b;
 }
 
 * {
@@ -181,7 +181,7 @@ body {
     filter: none;
   }
   30% {
-    color: #fff;
+    color: #1e293b;
     filter: drop-shadow(0 14px 10px var(--highlight-color));
   }
 }

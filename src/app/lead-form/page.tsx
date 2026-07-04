@@ -67,51 +67,51 @@ export default function LeadFormPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-black text-white flex flex-col justify-between overflow-x-hidden font-sans">
+    <div className="relative min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col justify-between overflow-x-hidden font-sans">
       {status === 'submitting' && <FullScreenLoader />}
 
       {/* Background Gradients */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-cyan-950/20 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-950/20 blur-[120px] pointer-events-none" />
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-sky-100/50 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-50/50 blur-[120px] pointer-events-none" />
 
       {/* Header */}
       <header className="px-6 md:px-12 lg:px-16 pt-6 relative z-10">
-        <div className="liquid-glass rounded-xl px-4 py-2 flex items-center justify-between">
+        <div className="bg-white/80 backdrop-blur-md border border-sky-100/80 shadow-sm rounded-xl px-4 py-2 flex items-center justify-between">
           <Link
             href="/"
-            className="flex items-center gap-2 text-sm text-slate-300 hover:text-white transition-colors cursor-pointer"
+            className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition-colors cursor-pointer font-medium"
           >
             <ArrowLeft size={16} />
             <span>Back to Home</span>
           </Link>
-          <span className="text-sm font-semibold tracking-wider text-cyan-400">CONTACT US</span>
+          <span className="text-sm font-semibold tracking-wider text-sky-600">CONTACT US</span>
         </div>
       </header>
 
       {/* Main Container */}
       <main className="flex-1 flex items-center justify-center px-4 py-12 relative z-10">
         <div className="w-full max-w-lg">
-          <div className="liquid-glass border border-white/10 rounded-2xl p-8 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+          <div className="bg-white/90 backdrop-blur-md border border-sky-100/80 rounded-2xl p-8 md:p-10 shadow-[0_15px_40px_rgba(14,165,233,0.06)]">
             
             <div className="text-center mb-8">
-              <h1 className="text-2xl md:text-3xl font-normal tracking-tight text-white mb-2">
+              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-slate-900 mb-2">
                 Submit Your Requirements
               </h1>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-slate-500">
                 Let us know what you need, and our team will get back to you.
               </p>
             </div>
 
             {/* Alerts */}
             {status === 'success' && (
-              <div className="mb-6 flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-emerald-400 text-sm">
+              <div className="mb-6 flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-emerald-700 text-sm">
                 <CheckCircle2 size={18} className="shrink-0" />
                 <span>Your request has been successfully submitted! We'll contact you soon.</span>
               </div>
             )}
 
             {status === 'error' && (
-              <div className="mb-6 flex items-center gap-3 bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-rose-400 text-sm">
+              <div className="mb-6 flex items-center gap-3 bg-rose-50 border border-rose-200 rounded-xl p-4 text-rose-700 text-sm">
                 <AlertCircle size={18} className="shrink-0" />
                 <span>{errorMessage}</span>
               </div>
@@ -120,7 +120,7 @@ export default function LeadFormPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Name */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
                   Full Name
                 </label>
                 <input
@@ -130,13 +130,13 @@ export default function LeadFormPage() {
                   onChange={handleChange}
                   placeholder="e.g. John Doe"
                   disabled={status === 'submitting'}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500/50 transition-colors"
+                  className="w-full bg-white border border-sky-200/80 rounded-lg px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition-all"
                 />
               </div>
 
               {/* Mobile */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
                   Mobile Number
                 </label>
                 <input
@@ -146,13 +146,13 @@ export default function LeadFormPage() {
                   onChange={handleChange}
                   placeholder="e.g. +1 234 567 8900"
                   disabled={status === 'submitting'}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500/50 transition-colors"
+                  className="w-full bg-white border border-sky-200/80 rounded-lg px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition-all"
                 />
               </div>
 
               {/* Email */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
                   Email Address
                 </label>
                 <input
@@ -162,13 +162,13 @@ export default function LeadFormPage() {
                   onChange={handleChange}
                   placeholder="e.g. john@example.com"
                   disabled={status === 'submitting'}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500/50 transition-colors"
+                  className="w-full bg-white border border-sky-200/80 rounded-lg px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition-all"
                 />
               </div>
 
               {/* Requirement Description */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
                   Requirement Description
                 </label>
                 <textarea
@@ -178,7 +178,7 @@ export default function LeadFormPage() {
                   placeholder="Tell us about your requirements..."
                   rows={4}
                   disabled={status === 'submitting'}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500/50 transition-colors resize-none"
+                  className="w-full bg-white border border-sky-200/80 rounded-lg px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition-all resize-none"
                 />
               </div>
 
@@ -186,7 +186,7 @@ export default function LeadFormPage() {
               <button
                 type="submit"
                 disabled={status === 'submitting' || status === 'success'}
-                className="w-full bg-white text-black hover:bg-gray-100 transition-colors py-3.5 rounded-lg text-sm font-semibold tracking-tight cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-sky-500 text-white hover:bg-sky-600 transition-all py-3.5 rounded-lg text-sm font-semibold tracking-tight cursor-pointer flex items-center justify-center gap-2 shadow-md shadow-sky-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {status === 'submitting' ? (
                   <span>Submitting...</span>
@@ -203,7 +203,7 @@ export default function LeadFormPage() {
       </main>
 
       {/* Footer */}
-      <footer className="py-6 border-t border-white/5 text-center text-xs text-gray-600 relative z-10">
+      <footer className="py-6 border-t border-sky-100/50 text-center text-xs text-slate-400 relative z-10 bg-white/20">
         AgentOps © 2026. All rights reserved.
       </footer>
     </div>

@@ -410,33 +410,33 @@ export default function AuthPage() {
   const isGlobalLoading = ['sending', 'verifying', 'face_capturing', 'face_verifying'].includes(status)
 
   return (
-    <div className="relative min-h-screen bg-black text-white flex flex-col justify-between overflow-x-hidden font-sans">
+    <div className="relative min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col justify-between overflow-x-hidden font-sans">
       {isGlobalLoading && <FullScreenLoader />}
 
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-cyan-950/20 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-950/20 blur-[120px] pointer-events-none" />
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-sky-100/50 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-50/50 blur-[120px] pointer-events-none" />
 
       <header className="px-6 md:px-12 lg:px-16 pt-6 relative z-10">
-        <div className="liquid-glass rounded-xl px-4 py-2 flex items-center justify-between">
-          <button onClick={() => router.push('/')} className="flex items-center gap-2 text-sm text-slate-300 hover:text-white transition-colors cursor-pointer">
+        <div className="bg-white/80 backdrop-blur-md border border-sky-100/80 shadow-sm rounded-xl px-4 py-2 flex items-center justify-between">
+          <button onClick={() => router.push('/')} className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition-colors cursor-pointer font-medium">
             <ArrowLeft size={16} /><span>Back to Home</span>
           </button>
-          <span className="text-sm font-semibold tracking-wider text-cyan-400">AUTHENTICATION</span>
+          <span className="text-sm font-semibold tracking-wider text-sky-600 font-medium">AUTHENTICATION</span>
         </div>
       </header>
 
       <main className="flex-1 flex items-center justify-center px-4 py-12 relative z-10">
         <div className="w-full max-w-md">
-          <div className="liquid-glass border border-white/10 rounded-2xl p-8 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+          <div className="bg-white/90 backdrop-blur-md border border-sky-100/80 rounded-2xl p-8 md:p-10 shadow-[0_15px_40px_rgba(14,165,233,0.06)]">
 
             <div className="text-center mb-6">
-              <h1 className="text-2xl md:text-3xl font-normal tracking-tight text-white mb-2">
+              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-slate-950 mb-2">
                 {status === 'face_setup' || status === 'face_capturing' ? 'Enable Face Login'
                   : status === 'face_login' || status === 'face_verifying' ? 'Face Verification'
                   : status === 'loading_models' ? 'Preparing AI Models'
                   : 'Welcome'}
               </h1>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-slate-500">
                 {status === 'loading_models' ? 'Loading neural network models into browser…'
                   : status === 'face_setup' || status === 'face_capturing' ? 'Position your face clearly in the camera.'
                   : status === 'face_login' || status === 'face_verifying' ? 'We\'ll compare your face with your stored data.'
@@ -446,13 +446,13 @@ export default function AuthPage() {
 
             {/* Status alerts */}
             {status === 'success' && (
-              <div className="mb-6 flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-emerald-400 text-sm">
+              <div className="mb-6 flex items-center gap-3 bg-emerald-550 border border-emerald-200 rounded-xl p-4 text-emerald-700 text-sm">
                 <CheckCircle2 size={18} className="shrink-0" />
                 <span>Verification successful! Redirecting…</span>
               </div>
             )}
             {(status === 'error' || status === 'invalid_otp') && (
-              <div className="mb-6 flex items-center gap-3 bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-rose-400 text-sm">
+              <div className="mb-6 flex items-center gap-3 bg-rose-50 border border-rose-200 rounded-xl p-4 text-rose-700 text-sm">
                 <AlertCircle size={18} className="shrink-0" />
                 <span>{errorMessage}</span>
               </div>
@@ -462,20 +462,20 @@ export default function AuthPage() {
             {isLoadingModels && (
               <div className="space-y-6">
                 <div className="flex flex-col gap-3">
-                  <div className="flex justify-between text-xs text-gray-400">
+                  <div className="flex justify-between text-xs text-slate-500">
                     <span>
                       {modelProgress < 33 ? 'Loading face detector…'
                         : modelProgress < 66 ? 'Loading landmark model…'
                         : modelProgress < 100 ? 'Loading recognition model…'
                         : '✅ Models ready!'}
                     </span>
-                    <span className="text-cyan-400 font-bold">{modelProgress}%</span>
+                    <span className="text-sky-600 font-bold">{modelProgress}%</span>
                   </div>
 
                   {/* Progress bar */}
-                  <div className="w-full h-2.5 rounded-full bg-white/10 overflow-hidden">
+                  <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-700 ease-out"
+                      className="h-full rounded-full bg-gradient-to-r from-sky-500 to-blue-500 transition-all duration-700 ease-out"
                       style={{ width: `${modelProgress}%` }}
                     />
                   </div>
@@ -487,16 +487,16 @@ export default function AuthPage() {
                       const active = modelProgress >= threshold
                       return (
                         <div key={label} className="flex flex-col items-center gap-1">
-                          <div className={`w-3 h-3 rounded-full border-2 transition-all duration-300 ${active ? 'bg-cyan-400 border-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.7)]' : 'bg-transparent border-white/20'}`} />
-                          <span className={`text-[10px] ${active ? 'text-cyan-400' : 'text-gray-600'}`}>{label}</span>
+                          <div className={`w-3 h-3 rounded-full border-2 transition-all duration-300 ${active ? 'bg-sky-500 border-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.4)]' : 'bg-transparent border-sky-100'}`} />
+                          <span className={`text-[10px] ${active ? 'text-sky-600' : 'text-slate-400'}`}>{label}</span>
                         </div>
                       )
                     })}
                   </div>
                 </div>
 
-                <div className="flex items-center justify-center gap-2 text-gray-500 text-xs">
-                  <Loader2 size={14} className="animate-spin text-cyan-500" />
+                <div className="flex items-center justify-center gap-2 text-slate-400 text-xs">
+                  <Loader2 size={14} className="animate-spin text-sky-500" />
                   <span>This only happens once per session</span>
                 </div>
               </div>
@@ -507,7 +507,7 @@ export default function AuthPage() {
               <div className="space-y-4 flex flex-col items-center">
 
                 {/* Camera feed with canvas overlay */}
-                <div className="relative w-56 h-56 rounded-full overflow-hidden border-2 border-cyan-500/50 bg-black shadow-[0_0_24px_rgba(6,182,212,0.2)]">
+                <div className="relative w-56 h-56 rounded-full overflow-hidden border-2 border-sky-400 bg-slate-950 shadow-[0_8px_30px_rgba(14,165,233,0.1)]">
                   <video
                     ref={videoRef}
                     autoPlay
@@ -524,27 +524,27 @@ export default function AuthPage() {
 
                   {/* Face detected ring pulse */}
                   {faceDetected && (
-                    <div className="absolute inset-0 rounded-full border-4 border-cyan-400 animate-ping opacity-30 pointer-events-none" />
+                    <div className="absolute inset-0 rounded-full border-4 border-sky-400 animate-ping opacity-30 pointer-events-none" />
                   )}
 
                   {/* Scanning lines animation when verifying */}
                   {isCapturing && (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="absolute w-full h-0.5 bg-cyan-400/60 animate-bounce" />
+                      <div className="absolute w-full h-0.5 bg-sky-400/60 animate-bounce" />
                     </div>
                   )}
                 </div>
 
                 {/* Face status message */}
                 {faceMessage && (
-                  <p className={`text-sm text-center px-2 ${faceDetected ? 'text-emerald-400' : 'text-amber-400'}`}>
+                  <p className={`text-sm text-center px-2 ${faceDetected ? 'text-emerald-600 font-medium' : 'text-amber-600 font-medium'}`}>
                     {faceMessage}
                   </p>
                 )}
 
                 {/* Verifying spinner */}
                 {isCapturing && (
-                  <div className="flex items-center gap-2 text-cyan-400 text-sm">
+                  <div className="flex items-center gap-2 text-sky-500 text-sm">
                     <Loader2 size={16} className="animate-spin" />
                     <span>{status === 'face_verifying' ? 'Verifying biometrics…' : 'Capturing face vector…'}</span>
                   </div>
@@ -558,12 +558,12 @@ export default function AuthPage() {
                         <button
                           onClick={handleCaptureFace}
                           disabled={!faceDetected}
-                          className="w-full bg-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed text-black hover:bg-cyan-400 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all"
+                          className="w-full bg-sky-500 disabled:opacity-40 disabled:cursor-not-allowed text-white hover:bg-sky-600 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 shadow-md shadow-sky-500/10 transition-all"
                         >
                           <Camera size={18} />
                           {faceDetected ? 'Capture & Enable Face Login' : 'Waiting for face…'}
                         </button>
-                        <button onClick={handleSkipFaceSetup} className="w-full bg-white/5 border border-white/10 hover:bg-white/10 py-3 rounded-xl text-sm text-gray-400 transition-all">
+                        <button onClick={handleSkipFaceSetup} className="w-full bg-white border border-sky-200 hover:bg-slate-50 py-3 rounded-xl text-sm text-slate-600 transition-all">
                           Skip for now
                         </button>
                       </>
@@ -573,12 +573,12 @@ export default function AuthPage() {
                         <button
                           onClick={handleVerifyFace}
                           disabled={!faceDetected}
-                          className="w-full bg-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed text-black hover:bg-cyan-400 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all"
+                          className="w-full bg-sky-500 disabled:opacity-40 disabled:cursor-not-allowed text-white hover:bg-sky-600 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 shadow-md shadow-sky-500/10 transition-all"
                         >
                           <User size={18} />
                           {faceDetected ? 'Verify My Face' : 'Waiting for face…'}
                         </button>
-                        <button onClick={handleCancelFaceView} className="w-full bg-white/5 border border-white/10 hover:bg-white/10 py-3 rounded-xl text-sm text-gray-400 transition-all">
+                        <button onClick={handleCancelFaceView} className="w-full bg-white border border-sky-200 hover:bg-slate-50 py-3 rounded-xl text-sm text-slate-600 transition-all">
                           Use OTP instead
                         </button>
                       </>
@@ -592,41 +592,41 @@ export default function AuthPage() {
             {!isFaceView && status !== 'success' && (
               <div className="space-y-5">
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Email Address</label>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Email Address</label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="e.g. john@example.com"
                     disabled={['sending','verifying','otp_sent','invalid_otp'].includes(status)}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500/50 transition-colors"
+                    className="w-full bg-white border border-sky-200/80 rounded-lg px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition-all"
                   />
                 </div>
 
                 {!['otp_sent','invalid_otp','verifying'].includes(status) && (
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Full Name</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Full Name</label>
                     <input
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="e.g. John Doe"
                       disabled={['sending'].includes(status)}
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500/50 transition-colors"
+                      className="w-full bg-white border border-sky-200/80 rounded-lg px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition-all"
                     />
                   </div>
                 )}
 
                 {['otp_sent','verifying','invalid_otp'].includes(status) && (
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Enter OTP</label>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Enter OTP</label>
                     <input
                       type="text"
                       value={otp}
                       onChange={(e) => setOtp(e.target.value)}
                       placeholder="Enter the code sent to your email"
                       disabled={['verifying','invalid_otp'].includes(status)}
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500/50"
+                      className="w-full bg-white border border-sky-200/80 rounded-lg px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition-all"
                     />
                   </div>
                 )}
@@ -637,14 +637,14 @@ export default function AuthPage() {
                     <button
                       onClick={handleGetOtp}
                       disabled={status === 'sending'}
-                      className="w-full bg-white text-black hover:bg-gray-100 py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                      className="w-full bg-sky-500 text-white hover:bg-sky-600 py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 shadow-md shadow-sky-500/10 transition-all disabled:opacity-50"
                     >
                       {status === 'sending' ? 'Sending OTP…' : 'Sign In with OTP'}
                     </button>
                     {isFaceEnabledForUser && (
                       <button
                         onClick={initiateFaceLogin}
-                        className="w-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/20 py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all"
+                        className="w-full bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100/60 py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all"
                       >
                         <Camera size={16} /> Sign In with Face
                       </button>
@@ -657,14 +657,14 @@ export default function AuthPage() {
                     <button
                       onClick={handleVerifyOtp}
                       disabled={['verifying','invalid_otp'].includes(status) || !otp}
-                      className="w-full bg-white text-black py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-all"
+                      className="w-full bg-sky-500 text-white hover:bg-sky-600 py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 shadow-md shadow-sky-500/10 transition-all disabled:opacity-50"
                     >
                       {status === 'verifying' ? 'Verifying…' : 'Verify OTP'}
                     </button>
                     <button
                       onClick={() => { if (resendTimer === 0) handleGetOtp() }}
                       disabled={resendTimer > 0 || status === 'verifying'}
-                      className="w-full border border-white/20 text-white hover:bg-white/5 py-3.5 rounded-xl text-sm font-semibold disabled:opacity-50 transition-all"
+                      className="w-full border border-sky-200 text-slate-600 hover:bg-slate-50 py-3.5 rounded-xl text-sm font-semibold disabled:opacity-50 transition-all"
                     >
                       {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : 'Resend OTP'}
                     </button>
@@ -677,7 +677,7 @@ export default function AuthPage() {
         </div>
       </main>
 
-      <footer className="py-6 border-t border-white/5 text-center text-xs text-gray-600 relative z-10">
+      <footer className="py-6 border-t border-sky-100/50 text-center text-xs text-slate-400 relative z-10 bg-white/20">
         AgentOps © 2026. All rights reserved.
       </footer>
     </div>
