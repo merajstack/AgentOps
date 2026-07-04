@@ -14,7 +14,7 @@ function ApiProcessContent() {
 
   // Auto-trigger if a URL is provided as a query parameter
   useEffect(() => {
-    const paramUrl = searchParams.get('url')
+    const paramUrl = searchParams?.get('url')
     if (paramUrl && !autoTriggered) {
       setUrl(paramUrl)
       setAutoTriggered(true)

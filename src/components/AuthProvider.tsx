@@ -11,7 +11,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // API routes are not handled by this React wrapper, but just in case, allow /api to pass
-    if (pathname.startsWith('/api')) {
+    if (pathname?.startsWith('/api')) {
       setIsAuthenticated(true)
       return
     }

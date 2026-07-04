@@ -68,3 +68,16 @@ export function generateTitle(message: string): string {
   return message.length > 40 ? message.slice(0, 40) + '…' : message
 }
 
+export function getAIResponse(): string {
+  const responses = [
+    "That's an interesting point. Tell me more.",
+    "I understand what you're saying.",
+    "Could you clarify that a bit?",
+    "Let me think about that for a second...",
+    "Here's a possible approach to your question.",
+    "Based on my knowledge, I'd say yes.",
+    "That sounds like a great idea!",
+    "I'm here to help with whatever you need."
+  ]
+  return responses[Math.floor(Math.random() * responses.length)]
+}
