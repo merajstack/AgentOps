@@ -71,6 +71,12 @@ export default function HeroPage() {
                   >
                     Start a Chat
                   </Link>
+                  <Link
+                    href="/create-chatbot"
+                    className="bg-transparent border border-white/40 text-white px-8 py-3 rounded-lg font-medium hover:bg-white/10 transition-colors cursor-pointer backdrop-blur-sm"
+                  >
+                    Build My Chatbot
+                  </Link>
                 </div>
               </FadeIn>
             </div>
