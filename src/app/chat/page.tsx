@@ -1,47 +1,95 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
-import { ArrowLeft, Plus, Send, MessageSquare, Trash2, Menu, Copy, Check, Pencil } from 'lucide-react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { ArrowLeft, Plus, Send, MessageSquare, Trash2, Menu, Copy, Check, Pencil, Paperclip, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import {
-  type Conversation,
-  type Message,
-  loadConversations,
-  saveConversations,
-  createConversation,
-  generateTitle,
-  getActiveConversationId,
-  setActiveConversationId,
-} from '../../lib/storage'
+import { supabase } from '@/lib/supabase'
+import { Loader } from '@/components/ui/loader'
+import { cn } from '@/lib/utils'
+
+export interface Message {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  timestamp: number
+}
+
+export interface Conversation {
+  id: string
+  title: string
+  messages: Message[]
+  createdAt: number
+  updatedAt: number
+}
+
+function generateTitle(message: string): string {
+  return message.length > 40 ? message.slice(0, 40) + '…' : message
+}
 
 export default function ChatPage() {
   const router = useRouter()
+  const [userEmail, setUserEmail] = useState<string | null>(null)
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
   const [input, setInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [attachment, setAttachment] = useState<File | null>(null)
+  
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Load from session storage on mount
+  // 1. Get user email on mount
   useEffect(() => {
-    setConversations(loadConversations())
-    setActiveId(getActiveConversationId())
-  }, [])
+    const userStr = localStorage.getItem('agentops_user')
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr)
+        setUserEmail(user.email)
+      } catch (e) {
+        router.replace('/auth')
+      }
+    } else {
+      router.replace('/auth')
+    }
+  }, [router])
+
+  // 2. Fetch conversations from Supabase when email is known
+  useEffect(() => {
+    async function fetchChats() {
+      if (!userEmail) return
+      try {
+        const { data, error } = await supabase
+          .from('conversations')
+          .select('*')
+          .eq('user_email', userEmail)
+          .order('updated_at', { ascending: false })
+          
+        if (error) throw error
+        
+        if (data && data.length > 0) {
+          const parsed = data.map(row => ({
+            id: row.id,
+            title: row.title,
+            messages: row.messages,
+            createdAt: new Date(row.created_at).getTime(),
+            updatedAt: new Date(row.updated_at).getTime()
+          }))
+          setConversations(parsed)
+          setActiveId(parsed[0].id)
+        }
+      } catch (err: any) {
+        // Only log if it's not the 'table does not exist' error (code 42P01)
+        if (err?.code !== '42P01') {
+          console.warn("Could not load conversations from database. Did you run the SQL script?", err)
+        }
+      }
+    }
+    fetchChats()
+  }, [userEmail])
 
   const active = conversations.find((c) => c.id === activeId) ?? null
-
-  // Persist on change
-  useEffect(() => {
-    if (conversations.length > 0) {
-      saveConversations(conversations)
-    }
-  }, [conversations])
-
-  useEffect(() => {
-    setActiveConversationId(activeId)
-  }, [activeId])
 
   // Auto-scroll
   useEffect(() => {
@@ -57,68 +105,112 @@ export default function ChatPage() {
   }, [input])
 
   const handleNewChat = () => {
-    const conv = createConversation()
+    const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString()
+    const conv: Conversation = {
+      id,
+      title: 'New Chat',
+      messages: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    }
     setConversations((prev) => [conv, ...prev])
     setActiveId(conv.id)
     setSidebarOpen(false)
     setInput('')
+    setAttachment(null)
   }
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
+    // Optimistic UI update
     const updated = conversations.filter((c) => c.id !== id)
     setConversations(updated)
-    saveConversations(updated)
     if (activeId === id) {
-      setActiveId(null)
-      setActiveConversationId(null)
+      setActiveId(updated.length > 0 ? updated[0].id : null)
+    }
+    
+    // Delete from DB
+    if (userEmail) {
+      await supabase.from('conversations').delete().eq('id', id).eq('user_email', userEmail)
+    }
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setAttachment(e.target.files[0])
+    }
+  }
+
+  const syncConversationToDb = async (conv: Conversation) => {
+    if (!userEmail) return
+    try {
+      await supabase.from('conversations').upsert({
+        id: conv.id,
+        user_email: userEmail,
+        title: conv.title,
+        messages: conv.messages,
+        updated_at: new Date(conv.updatedAt).toISOString()
+      })
+    } catch (err) {
+      console.error("Failed to sync conversation:", err)
     }
   }
 
   const handleSend = async () => {
     const text = input.trim()
-    if (!text || isTyping) return
+    if ((!text && !attachment) || isTyping) return
+
+    let finalMessageText = text
+    if (attachment) {
+      finalMessageText += finalMessageText ? `\n\n[Attached: ${attachment.name}]` : `[Attached: ${attachment.name}]`
+    }
 
     let convId = activeId
     let currentMessages = active ? active.messages : []
+    let currentTitle = active?.title || 'New Chat'
 
     if (!convId) {
-      const conv = createConversation(generateTitle(text))
-      setConversations((prev) => [conv, ...prev])
-      convId = conv.id
-      setActiveId(conv.id)
+      convId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString()
+      currentTitle = generateTitle(finalMessageText)
+    } else if (currentMessages.length === 0) {
+      currentTitle = generateTitle(finalMessageText)
     }
 
     const userMsg: Message = {
       id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(),
       role: 'user',
-      content: text,
+      content: finalMessageText,
       timestamp: Date.now(),
     }
 
     const updatedMessages = [...currentMessages, userMsg]
+    
+    const updatedConv: Conversation = {
+      id: convId,
+      title: currentTitle,
+      messages: updatedMessages,
+      createdAt: active ? active.createdAt : Date.now(),
+      updatedAt: Date.now()
+    }
 
-    setConversations((prev) =>
-      prev.map((c) =>
-        c.id === convId
-          ? {
-            ...c,
-            messages: updatedMessages,
-            title: c.messages.length === 0 ? generateTitle(text) : c.title,
-            updatedAt: Date.now(),
-          }
-          : c
-      )
-    )
+    // Update state & sync
+    setConversations((prev) => {
+      const exists = prev.some(c => c.id === convId)
+      if (exists) {
+        return prev.map(c => c.id === convId ? updatedConv : c)
+      }
+      return [updatedConv, ...prev]
+    })
+    setActiveId(convId)
+    syncConversationToDb(updatedConv)
 
     setInput('')
+    setAttachment(null)
     setIsTyping(true)
 
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: updatedMessages }),
       })
 
@@ -131,35 +223,29 @@ export default function ChatPage() {
         timestamp: Date.now(),
       }
 
-      setConversations((prev) =>
-        prev.map((c) =>
-          c.id === convId
-            ? {
-              ...c,
-              messages: [...updatedMessages, aiMsg],
-              updatedAt: Date.now(),
-            }
-            : c
-        )
-      )
+      const finalConv = {
+        ...updatedConv,
+        messages: [...updatedMessages, aiMsg],
+        updatedAt: Date.now()
+      }
+      
+      setConversations((prev) => prev.map(c => c.id === convId ? finalConv : c))
+      syncConversationToDb(finalConv)
+      
     } catch (err: any) {
       const errorMsg: Message = {
         id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(),
         role: 'assistant',
-        content: `Error: ${err.message || 'Failed to connect to Gemini AI.'}`,
+        content: `Error: ${err.message || 'Failed to connect to AI.'}`,
         timestamp: Date.now(),
       }
-      setConversations((prev) =>
-        prev.map((c) =>
-          c.id === convId
-            ? {
-              ...c,
-              messages: [...updatedMessages, errorMsg],
-              updatedAt: Date.now(),
-            }
-            : c
-        )
-      )
+      const errorConv = {
+        ...updatedConv,
+        messages: [...updatedMessages, errorMsg],
+        updatedAt: Date.now()
+      }
+      setConversations((prev) => prev.map(c => c.id === convId ? errorConv : c))
+      syncConversationToDb(errorConv)
     } finally {
       setIsTyping(false)
     }
@@ -254,13 +340,13 @@ export default function ChatPage() {
             </div>
             <div>
               <p className="text-sm font-semibold text-slate-800">AgentOps Assistant</p>
-              <p className="text-xs text-slate-500">Gemini Intelligence</p>
+              <p className="text-xs text-slate-500">AI Intelligence</p>
             </div>
           </div>
         </div>
       </aside>
 
-      {/* Main Chat Area - White background */}
+      {/* Main Chat Area */}
       <main className="flex-1 flex flex-col min-w-0 bg-white">
         {/* Chat header */}
         <header className="h-14 flex items-center px-4 border-b border-sky-100 bg-white/95 backdrop-blur-md shrink-0">
@@ -297,7 +383,35 @@ export default function ChatPage() {
         {/* Input bar */}
         <div className="shrink-0 px-4 pb-4 pt-2 bg-white border-t border-sky-100">
           <div className="max-w-3xl mx-auto">
-            <div className="rounded-2xl border border-sky-200/80 bg-white shadow-[0_10px_30px_rgba(14,165,233,0.06)] flex items-end gap-2 px-4 py-3">
+            {/* Attachment preview */}
+            {attachment && (
+              <div className="mb-2 flex items-center gap-2 bg-sky-50 text-sky-700 px-3 py-1.5 rounded-lg border border-sky-100 text-sm max-w-fit shadow-sm">
+                <Paperclip size={14} className="shrink-0" />
+                <span className="truncate max-w-[200px]">{attachment.name}</span>
+                <button 
+                  onClick={() => setAttachment(null)}
+                  className="ml-1 text-sky-400 hover:text-sky-700 cursor-pointer"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            )}
+            
+            <div className="rounded-2xl border border-sky-200/80 bg-white shadow-[0_10px_30px_rgba(14,165,233,0.06)] flex items-end gap-2 px-3 py-3 relative">
+              <input 
+                type="file" 
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-sky-500 hover:bg-sky-50 transition-colors cursor-pointer"
+                title="Attach file"
+              >
+                <Paperclip size={18} />
+              </button>
+              
               <textarea
                 ref={inputRef}
                 value={input}
@@ -305,14 +419,15 @@ export default function ChatPage() {
                 onKeyDown={handleKeyDown}
                 placeholder="Message AgentOps..."
                 rows={1}
-                className="flex-1 bg-transparent text-slate-800 placeholder-slate-400 outline-none resize-none text-sm leading-relaxed max-h-[200px]"
+                className="flex-1 bg-transparent text-slate-800 placeholder-slate-400 outline-none resize-none text-sm leading-relaxed max-h-[200px] py-1"
               />
+              
               <button
                 onClick={handleSend}
-                disabled={!input.trim() || isTyping}
+                disabled={(!input.trim() && !attachment) || isTyping}
                 className={`
                   shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all cursor-pointer
-                  ${input.trim() && !isTyping
+                  ${(input.trim() || attachment) && !isTyping
                     ? 'bg-sky-500 text-white hover:bg-sky-600 shadow-md shadow-sky-500/10'
                     : 'bg-slate-100 text-slate-300'
                   }
@@ -322,7 +437,7 @@ export default function ChatPage() {
               </button>
             </div>
             <p className="text-[11px] text-slate-400 text-center mt-2">
-              AgentOps uses Gemini AI. Messages stored in session storage.
+              Chats are securely stored in your account.
             </p>
           </div>
         </div>
@@ -361,6 +476,55 @@ function EmptyState({ onQuestionClick }: { onQuestionClick: (q: string) => void 
   )
 }
 
+function ImageWithLoader({ src, alt }: { src: string; alt: string }) {
+  const [loaded, setLoaded] = useState(false)
+
+  return (
+    <>
+      {!loaded && (
+        <div className="image-loader-overlay">
+          <Loader />
+        </div>
+      )}
+      <img 
+        src={src} 
+        alt={alt}
+        onLoad={() => {
+          setTimeout(() => setLoaded(true), 2000)
+        }}
+        className={cn(
+          "max-w-full rounded-lg mt-2 mb-2 transition-opacity duration-500",
+          loaded ? "opacity-100" : "opacity-0"
+        )} 
+      />
+    </>
+  )
+}
+
+function renderBoldAndCode(text: string, isUser: boolean) {
+  if (text.trim().startsWith('```') || text.includes('```')) {
+    return <code className="block bg-slate-900 text-slate-100 p-3 rounded-lg border border-slate-800 text-xs font-mono whitespace-pre leading-relaxed">{text.replace(/```/g, '')}</code>
+  }
+
+  const parts = text.split(/(\*\*.*?\*\*|`.*?`|!\[.*?\]\(.*?\))/g)
+  return parts.map((part, i) => {
+    if (part.startsWith('![') && part.endsWith(')')) {
+      const altMatch = part.match(/!\[(.*?)\]/)
+      const urlMatch = part.match(/\((.*?)\)/)
+      if (altMatch && urlMatch) {
+        return <ImageWithLoader key={i} src={urlMatch[1]} alt={altMatch[1]} />
+      }
+    }
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className={`font-semibold ${isUser ? 'text-white' : 'text-slate-900'}`}>{part.slice(2, -2)}</strong>
+    }
+    if (part.startsWith('`') && part.endsWith('`')) {
+      return <code key={i} className={`px-1.5 py-0.5 rounded text-xs font-mono ${isUser ? 'bg-sky-600 text-white' : 'bg-slate-100 text-sky-700'}`}>{part.slice(1, -1)}</code>
+    }
+    return part
+  })
+}
+
 function MessageBubble({ message, onEdit }: { message: Message; onEdit: (text: string) => void }) {
   const isUser = message.role === 'user'
   const [copied, setCopied] = useState(false)
@@ -371,7 +535,7 @@ function MessageBubble({ message, onEdit }: { message: Message; onEdit: (text: s
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      // fallback — silently ignore
+      // fallback
     }
   }
 
@@ -400,12 +564,11 @@ function MessageBubble({ message, onEdit }: { message: Message; onEdit: (text: s
           ))}
         </div>
 
-        {/* Action buttons — visible on hover */}
+        {/* Action buttons */}
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
           {!isUser && (
             <button
               onClick={handleCopy}
-              title={copied ? 'Copied!' : 'Copy response'}
               className="flex items-center gap-1 px-2 py-1 rounded-md text-xs text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
             >
               {copied ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
@@ -415,7 +578,6 @@ function MessageBubble({ message, onEdit }: { message: Message; onEdit: (text: s
           {isUser && (
             <button
               onClick={() => onEdit(message.content)}
-              title="Edit message"
               className="flex items-center gap-1 px-2 py-1 rounded-md text-xs text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
             >
               <Pencil size={12} />
@@ -432,31 +594,6 @@ function MessageBubble({ message, onEdit }: { message: Message; onEdit: (text: s
       )}
     </div>
   )
-}
-
-function renderBoldAndCode(text: string, isUser: boolean) {
-  // Simple code block / bold formatter helper
-  if (text.trim().startsWith('```') || text.includes('```')) {
-    return <code className="block bg-slate-900 text-slate-100 p-3 rounded-lg border border-slate-800 text-xs font-mono whitespace-pre leading-relaxed">{text.replace(/```/g, '')}</code>
-  }
-
-  const parts = text.split(/(\*\*.*?\*\*|`.*?`|!\[.*?\]\(.*?\))/g)
-  return parts.map((part, i) => {
-    if (part.startsWith('![') && part.endsWith(')')) {
-      const altMatch = part.match(/!\[(.*?)\]/);
-      const urlMatch = part.match(/\((.*?)\)/);
-      if (altMatch && urlMatch) {
-        return <img key={i} src={urlMatch[1]} alt={altMatch[1]} className="max-w-full rounded-lg mt-2 mb-2" />;
-      }
-    }
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={i} className={`font-semibold ${isUser ? 'text-white' : 'text-slate-900'}`}>{part.slice(2, -2)}</strong>
-    }
-    if (part.startsWith('`') && part.endsWith('`')) {
-      return <code key={i} className={`px-1.5 py-0.5 rounded text-xs font-mono ${isUser ? 'bg-sky-600 text-white' : 'bg-slate-100 text-sky-700'}`}>{part.slice(1, -1)}</code>
-    }
-    return part
-  })
 }
 
 function TypingIndicator() {
