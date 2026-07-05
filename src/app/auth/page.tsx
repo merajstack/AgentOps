@@ -62,8 +62,8 @@ export default function AuthPage() {
             
             {/* Header Text */}
             <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-sky-50 text-sky-500 mb-4 border border-sky-100 shadow-sm shadow-sky-500/5">
-                <Sparkles size={20} />
+              <div className="inline-flex items-center justify-center w-16 h-16 mb-4">
+                <img src="/ai-logo.png" alt="AgentOps Logo" className="w-full h-full object-contain drop-shadow-md" />
               </div>
               <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Access AgentOps</h1>
               <p className="text-slate-500 mt-2 text-sm">
