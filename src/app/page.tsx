@@ -22,17 +22,8 @@ export default function HeroPage() {
         <nav className="px-6 md:px-12 lg:px-16 pt-6">
           <div className="liquid-glass rounded-xl px-4 py-2 flex items-center justify-between">
             <span className="text-2xl font-semibold tracking-tight">AgentOps</span>
-            <div className="hidden md:flex items-center gap-8">
-              <Link href="/walkthrough" className="text-sm text-white hover:text-gray-300 transition-colors">
-                Walkthrough
-              </Link>
-              <a href="#" className="text-sm text-white hover:text-gray-300 transition-colors">
-                Building
-              </a>
-              <Link href="/products" className="text-sm text-white hover:text-gray-300 transition-colors py-2">
-                Our Products
-              </Link>
-            </div>
+
+
             <div className="flex items-center gap-4">
               <Link
                 href="/chat"
