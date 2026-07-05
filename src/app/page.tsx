@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { FadeIn, AnimatedHeading } from '../components/Animations'
 import Link from 'next/link'
 import { Zap, ArrowDown, X } from 'lucide-react'
+import WhyWeAreTheBest from '../components/WhyWeAreTheBest'
 
 const WORKFLOW_CARDS = [
   { id: 1, src: '/a1.png', title: 'Sales Inquiry Automation' },
@@ -149,6 +150,9 @@ export default function HeroPage() {
           />
         </div>
       </section>
+
+      {/* ── SECTION 1.5: Why We Are The Best ───────────────────────── */}
+      <WhyWeAreTheBest />
 
       {/* ── SECTION 2: Automations + Workflow Cards (combined) ────── */}
       <section
