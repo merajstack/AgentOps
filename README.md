@@ -24,7 +24,12 @@
 AgentOps is an AI-driven automation platform that connects customers, managers, and business workflows into a seamless pipeline.
 Try at : https://agentops-auto.vercel.app/
 
-<div style="position: relative; padding-bottom: 59.66850828729282%; height: 0;"><iframe src="https://www.loom.com/embed/e5edc11a5a194ef9855af41bc78a4c51" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>
+## 🎥 Demo
+<p align="center">
+  <a href="https://www.loom.com/share/e5edc11a5a194ef9855af41bc78a4c51">
+    <img src="./public/demo.png" alt="AgentOps Demo">
+  </a>
+</p>
 
 <b>Sample Workflow: Try at : https://steel-agentops.vercel.app/</b>
 ```
