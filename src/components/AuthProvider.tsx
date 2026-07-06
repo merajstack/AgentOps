@@ -62,13 +62,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [pathname])
 
   useEffect(() => {
-    if (!loading) {
-      const isPublicRoute = publicRoutes.some(route => pathname === route || pathname?.startsWith(route + '/'))
-      if (!user && !isPublicRoute) {
-        router.replace('/auth')
-      }
+    if (loading) return
+
+    const isPublicRoute = publicRoutes.some(
+      (route) => pathname === route || pathname?.startsWith(route + '/')
+    )
+
+    // Guard only after we know the session state.
+    // Otherwise, the app can bounce to /auth during OAuth session rehydration.
+    if (!user && !isPublicRoute) {
+      router.replace('/auth')
     }
   }, [user, loading, pathname, router])
+
+  // Extra protection against OAuth token callback timing:
+  // If Supabase is already in a signed-in state but our React state hasn't caught up,
+  // avoid immediate redirect.
+  useEffect(() => {
+    if (loading) return
+    if (publicRoutes.some((route) => pathname === route || pathname?.startsWith(route + '/'))) return
+
+    const maybeSignedIn = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) return
+      router.replace('/auth')
+    }
+
+    if (!user) maybeSignedIn()
+  }, [user, loading, pathname, router])
+
 
   const logout = async () => {
     localStorage.clear()
