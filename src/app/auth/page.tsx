@@ -116,7 +116,18 @@ export default function AuthPage() {
                 </span>
               </div>
 
-
+              {/* Redirect for Authenticated Users */}
+              <div className="space-y-4 text-center">
+                <p className="text-xs font-medium text-slate-600">
+                  Notice: if you have authenticated using google then click the button below
+                </p>
+                <button
+                  onClick={() => (window.location.href = 'https://agentops-auto.vercel.app')}
+                  className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-red-500/25 text-sm cursor-pointer"
+                >
+                  Continue to Application
+                </button>
+              </div>
             </div>
           </div>
 
