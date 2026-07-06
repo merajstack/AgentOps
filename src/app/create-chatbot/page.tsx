@@ -18,7 +18,6 @@ interface SavedChatbot {
 export default function CreateChatbotPage() {
   const router = useRouter()
   const [chatbotName, setChatbotName] = useState('')
-  const [email, setEmail] = useState('')
   const [trainingData, setTrainingData] = useState('')
   const [pageState, setPageState] = useState<PageState>('form')
   const [loadingText, setLoadingText] = useState('Initializing…')
@@ -90,10 +89,6 @@ export default function CreateChatbotPage() {
 
   const handleCreate = async () => {
     if (!chatbotName.trim()) return
-    if (!email.trim() || !email.includes('@')) {
-      setErrorMessage('Please provide a valid email address.')
-      return
-    }
     if (!trainingData.trim() || trainingData.trim().length < 20) {
       setErrorMessage('Training data must be at least 20 characters.')
       return
@@ -122,23 +117,20 @@ export default function CreateChatbotPage() {
       // 1. Save to localStorage — powers the "My Chatbots" UI list
       saveChatbotToStorage(newChatbot)
 
-      // 1.5. Silently upsert to users table
-      await supabase.from('users').upsert({
-        email: email.trim(),
-      }, { onConflict: 'email' }).catch(err => {
-        console.warn('[Supabase users sync warning]', err.message)
-      })
-
       // 2. Silently upsert to Supabase — powers the live /api/chatbot/:key endpoint
-      supabase.from('chatbots').upsert({
-        chatbot_name: chatbotName.trim(),
-        training_data: trainingData.trim(),
-        api_key: apiKey,
-        api_url: apiUrl,
-        user_email: email.trim(),
-      }, { onConflict: 'api_key' }).then(({ error }) => {
-        if (error) console.warn('[Supabase sync warning]', error.message)
-      })
+      const { error } = await supabase.from('chatbots').upsert(
+        {
+          chatbot_name: chatbotName.trim(),
+          training_data: trainingData.trim(),
+          api_key: apiKey,
+          api_url: apiUrl,
+          user_email: 'anonymous@agentops-auto.vercel.app',
+        },
+        { onConflict: 'api_key' },
+      )
+
+      if (error) console.warn('[Supabase sync warning]', error.message)
+
 
       setLoadingProgress(100)
       setLoadingText('Done! 🎉')
@@ -183,7 +175,7 @@ export default function CreateChatbotPage() {
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-blue-50/50 blur-[120px] pointer-events-none" />
         <header className="px-6 md:px-12 pt-6 relative z-10">
           <div className="bg-white/80 backdrop-blur-md border border-sky-100/80 shadow-sm rounded-xl px-4 py-2 flex items-center justify-between">
-            <button onClick={() => { setChatbotName(''); setEmail(''); setTrainingData(''); setResult(null); setPageState('form') }} className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 cursor-pointer font-medium">
+            <button onClick={() => { setChatbotName(''); setTrainingData(''); setResult(null); setPageState('form') }} className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 cursor-pointer font-medium">
               <ArrowLeft size={16} /><span>Back</span>
             </button>
             <span className="text-sm font-semibold tracking-wider text-sky-600">CHATBOT READY</span>
@@ -242,7 +234,7 @@ export default function CreateChatbotPage() {
               </div>
               <div className="flex gap-3">
                 <button
-                  onClick={() => { setChatbotName(''); setEmail(''); setTrainingData(''); setResult(null); setPageState('form') }}
+                  onClick={() => { setChatbotName(''); setTrainingData(''); setResult(null); setPageState('form') }}
                   className="flex-1 border border-sky-200 hover:bg-slate-50 text-slate-600 py-3 rounded-xl text-sm font-medium transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
                   <Plus size={16} /> Create Another
@@ -311,18 +303,6 @@ export default function CreateChatbotPage() {
             </div>
             <div>
               <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
-                <Bot size={12} /> Your Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="e.g. you@example.com"
-                className="w-full bg-white border border-sky-200/80 rounded-lg px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/10 transition-all"
-              />
-            </div>
-            <div>
-              <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
                 <Database size={12} /> Training Data
               </label>
               <textarea
@@ -336,7 +316,7 @@ export default function CreateChatbotPage() {
             </div>
             <button
               onClick={handleCreate}
-              disabled={!chatbotName.trim() || !email.trim() || trainingData.trim().length < 20}
+              disabled={!chatbotName.trim() || trainingData.trim().length < 20}
               className="w-full bg-sky-500 text-white hover:bg-sky-600 disabled:opacity-40 disabled:cursor-not-allowed py-3.5 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 shadow-md shadow-sky-500/10"
             >
               <Bot size={16} />
