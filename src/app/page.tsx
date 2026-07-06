@@ -16,7 +16,14 @@ const WORKFLOW_CARDS = [
 export default function HeroPage() {
 
   const section2Ref = useRef<HTMLDivElement>(null)
+  const videoSectionRef = useRef<HTMLElement>(null)
   const [zoomedCard, setZoomedCard] = useState<typeof WORKFLOW_CARDS[0] | null>(null)
+  const [showVideoPopup, setShowVideoPopup] = useState(true)
+
+  const scrollToVideo = useCallback(() => {
+    setShowVideoPopup(false)
+    videoSectionRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [])
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -138,7 +145,7 @@ export default function HeroPage() {
       </section>
 
       {/* ── SECTION 1: Loom Video ────────────────────────────────── */}
-      <section className="relative w-full h-screen overflow-hidden flex items-center justify-center px-6 bg-gradient-to-b from-black via-sky-950 to-[#f0f9ff]">
+      <section ref={videoSectionRef} className="relative w-full h-screen overflow-hidden flex items-center justify-center px-6 bg-gradient-to-b from-black via-sky-950 to-[#f0f9ff]">
         <div className="w-full max-w-4xl aspect-[16/9] relative rounded-2xl overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(14,165,233,0.15)]">
           <iframe
             src="https://www.loom.com/embed/e5edc11a5a194ef9855af41bc78a4c51"
@@ -236,6 +243,35 @@ export default function HeroPage() {
             <p className="absolute -bottom-10 left-0 right-0 text-center text-sm text-white/70 font-medium">
               {zoomedCard.title}
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Video Recommendation Popup ────────────────────────────────── */}
+      {showVideoPopup && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 backdrop-blur-md animate-fadeIn">
+          <div className="bg-white text-black p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4 text-center border border-white/20 transform transition-all scale-100">
+            <div className="w-14 h-14 bg-sky-100 rounded-full flex items-center justify-center mx-auto mb-5 shadow-inner">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-sky-600 ml-1" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold tracking-tight mb-2 text-slate-800">Welcome to AgentOps</h3>
+            <p className="text-slate-600 mb-8 font-medium">Recommended to watch the video before proceeding</p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                onClick={() => setShowVideoPopup(false)}
+                className="px-6 py-3 rounded-xl font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+              >
+                Maybe Later
+              </button>
+              <button
+                onClick={scrollToVideo}
+                className="px-6 py-3 rounded-xl font-medium bg-sky-600 text-white hover:bg-sky-700 shadow-lg shadow-sky-600/30 transition-all hover:-translate-y-0.5 flex justify-center items-center gap-2"
+              >
+                <span>Watch Video</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
