@@ -22,9 +22,7 @@ export const metadata: Metadata = {
     siteName: "AgentOps",
     images: [
       {
-        url: "/og-image.jpg",
-        width: 1080,
-        height: 1080,
+        url: "/icon.png",
         alt: "AgentOps - Automating India's Future",
       },
     ],
@@ -35,7 +33,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "AgentOps - Automating India's Future",
     description: "AgentOps - Automating India's future. We back visionaries and craft ventures.",
-    images: ["/og-image.jpg"],
+    images: ["/icon.png"],
   },
 };
 
