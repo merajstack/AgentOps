@@ -27,70 +27,14 @@ If the user asks for any automation related to: business enquiries, invoices, in
 
 Respond with EXACTLY this (fill in [MANAGER_EMAIL] with the real email):
 
----
-
-## 🤖 Your Chatbot Widget Is Ready!
-### Business Enquiry · Invoice · Proposal
-
-**Just copy this snippet and paste it into your website's HTML — before the closing \`</body>\` tag:**
-
 \`\`\`
 <script src="${WIDGET_BASE_URL}/widget.js" data-type="business-inquiry" data-manager-email="[MANAGER_EMAIL]"></script>
 \`\`\`
 
-That's it! A floating chat bubble will appear at the bottom-right of your site.
-
----
-
-### ✅ How It Works
-- A floating chat bubble appears at the bottom-right of your website.
-- It collects the visitor's **name**, **email**, and **query** through a friendly conversation.
-- Your manager email (\`[MANAGER_EMAIL]\`) is silently embedded — visitors never see it.
-- On submit, a POST request is sent to the webhook with \`{ name, email, query, adminEmail: "[MANAGER_EMAIL]" }\`.
-
----
-
-### 🌐 Where to Paste It
-
-| Platform | How to Add |
-|----------|-----------|
-| **Webflow** | Page Settings → Custom Code → Before \`</body>\` tag |
-| **Framer** | Site Settings → Custom Code → End of \`<body>\` tag |
-| **WordPress** | Appearance → Theme Editor → footer.php (before \`</body>\`) |
-| **Squarespace** | Settings → Advanced → Code Injection → Footer |
-| **Shopify** | Online Store → Themes → Edit Code → theme.liquid (before \`</body>\`) |
-| **Plain HTML** | Paste the \`<script>\` tag before \`</body>\` |
-
----
-
-### 🎨 Optional Customization
-
-You can add these optional attributes to customize the widget:
-
-| Attribute | Default | Description |
-|-----------|---------|-------------|
-| \`data-color\` | \`#6366f1\` | Widget accent color (hex) |
-| \`data-icon\` | AgentOps logo | Custom bot avatar URL |
-
-**Example with custom color:**
-\`\`\`
-<script src="${WIDGET_BASE_URL}/widget.js" data-type="business-inquiry" data-manager-email="[MANAGER_EMAIL]" data-color="#0ea5e9"></script>
-\`\`\`
-
----
-
-### 🧪 Test It
-
 1. Paste the snippet into your site.
 2. Click the floating chat bubble (bottom-right corner).
 3. Enter a test name, email, and query.
-4. Check the manager's inbox (\`[MANAGER_EMAIL]\`) for the notification.
-
----
-
-> 💡 **Tip:** You can embed this widget on multiple pages. Since the manager email is embedded in the snippet, every enquiry routes to the right person automatically.
-
----
+4. Check the manager's inbox ([MANAGER_EMAIL]) for the notification.
 
 === END OF BUSINESS INQUIRY GUIDE ===
 
@@ -99,60 +43,14 @@ If the user asks for "an automation setup for generating leads", "lead generatio
 - STEP 1: If they haven't provided it yet, ask exactly: "Before I generate your widget snippet, could you please share your **business name** and **business email**? These will be embedded into the widget so you can receive qualified lead notifications."
 - STEP 2: Once they provide the business name (BUSINESS_NAME) and email (BUSINESS_EMAIL), respond with EXACTLY:
 
----
-
-## 📊 Your Lead Capture Widget Is Ready!
-
-**Just copy this snippet and paste it into your website's HTML — before the closing \`</body>\` tag:**
-
 \`\`\`
 <script src="${WIDGET_BASE_URL}/widget.js" data-type="lead-capture" data-business-name="[BUSINESS_NAME]" data-business-email="[BUSINESS_EMAIL]"></script>
 \`\`\`
 
-That's it! A floating chat bubble will appear that collects leads through a friendly conversation.
-
----
-
-### ✅ How It Works
-- The widget collects: **Full Name**, **Mobile Number**, **Email**, and **Requirement Description**.
-- Your business name (\`[BUSINESS_NAME]\`) and email (\`[BUSINESS_EMAIL]\`) are silently embedded.
-- On submit, a POST request is sent with \`{ name, mobile, email, requirement_description, owner_mobile: "[BUSINESS_EMAIL]", business_name: "[BUSINESS_NAME]" }\`.
-
----
-
-### 🌐 Where to Paste It
-
-| Platform | How to Add |
-|----------|-----------|
-| **Webflow** | Page Settings → Custom Code → Before \`</body>\` tag |
-| **Framer** | Site Settings → Custom Code → End of \`<body>\` tag |
-| **WordPress** | Appearance → Theme Editor → footer.php (before \`</body>\`) |
-| **Squarespace** | Settings → Advanced → Code Injection → Footer |
-| **Shopify** | Online Store → Themes → Edit Code → theme.liquid (before \`</body>\`) |
-| **Plain HTML** | Paste the \`<script>\` tag before \`</body>\` |
-
----
-
-### 🎨 Optional Customization
-
-| Attribute | Default | Description |
-|-----------|---------|-------------|
-| \`data-color\` | \`#6366f1\` | Widget accent color (hex) |
-| \`data-icon\` | AgentOps logo | Custom bot avatar URL |
-
----
-
-### 🧪 Test It
-
 1. Paste the snippet into your site.
-2. Click the chat bubble → fill in test details → submit.
-3. Check your inbox (\`[BUSINESS_EMAIL]\`) for the lead notification.
-
----
-
-> 💡 **Tip:** Embed on landing pages, contact pages, or your homepage — every lead captured goes straight to your inbox.
-
----
+2. Click the floating chat bubble (bottom-right corner).
+3. Enter a test name, mobile, email, and requirement description.
+4. Check your inbox ([BUSINESS_EMAIL]) for the notification.
 
 === END OF LEAD CAPTURE GUIDE ===
 

@@ -567,6 +567,49 @@ function ImageWithLoader({ src, alt, onZoom }: { src: string; alt: string; onZoo
   )
 }
 
+function parseMessageContent(content: string) {
+  const parts = content.split(/(```[\s\S]*?```)/g);
+  return parts.map((part) => {
+    if (part.startsWith('```') && part.endsWith('```')) {
+      const firstNewline = part.indexOf('\n');
+      let code = '';
+      if (firstNewline !== -1) {
+        code = part.slice(firstNewline + 1, -3);
+      } else {
+        code = part.slice(3, -3);
+      }
+      return { type: 'code', content: code.trim() };
+    } else {
+      return { type: 'text', content: part };
+    }
+  });
+}
+
+function CodeBlock({ content }: { content: string }) {
+  const [copied, setCopied] = useState(false)
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(content)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {}
+  }
+  return (
+    <div className="my-3 relative group/code w-full min-w-0">
+      <pre className="bg-slate-900 text-slate-100 p-4 rounded-xl border border-slate-800 text-xs font-mono overflow-x-auto whitespace-pre leading-relaxed select-all pr-20">
+        {content}
+      </pre>
+      <button
+        onClick={handleCopy}
+        className="absolute right-2 top-2 p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all opacity-0 group-hover/code:opacity-100 text-xs flex items-center gap-1 cursor-pointer shadow-md"
+      >
+        {copied ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
+        <span className={copied ? 'text-green-500' : ''}>{copied ? 'Copied!' : 'Copy'}</span>
+      </button>
+    </div>
+  )
+}
+
 function renderBoldAndCode(text: string, isUser: boolean, onZoom: (src: string, alt: string) => void) {
   if (text.trim().startsWith('```') || text.includes('```')) {
     return <code className="block bg-slate-900 text-slate-100 p-3 rounded-lg border border-slate-800 text-xs font-mono whitespace-pre leading-relaxed">{text.replace(/```/g, '')}</code>
@@ -613,7 +656,7 @@ function MessageBubble({ message, onEdit, onZoom }: { message: Message; onEdit: 
         </div>
       )}
 
-      <div className={`flex flex-col gap-1 max-w-[85%] ${isUser ? 'items-end' : 'items-start'}`}>
+      <div className={`flex flex-col gap-1 max-w-[85%] ${isUser ? 'items-end' : 'items-start'} min-w-0`}>
         <div
           className={`
             rounded-2xl px-4 py-3 text-sm leading-relaxed overflow-x-auto w-full
@@ -623,11 +666,17 @@ function MessageBubble({ message, onEdit, onZoom }: { message: Message; onEdit: 
             }
           `}
         >
-          {message.content.split('\n').map((line, i) => (
-            <div key={i} className={i > 0 ? 'mt-2' : ''}>
-              {renderBoldAndCode(line, isUser, onZoom)}
-            </div>
-          ))}
+          {parseMessageContent(message.content).map((block, idx) => {
+            if (block.type === 'code') {
+              return <CodeBlock key={idx} content={block.content} />
+            } else {
+              return block.content.split('\n').map((line, i) => (
+                <div key={`${idx}-${i}`} className={i > 0 || idx > 0 ? 'mt-2' : ''}>
+                  {renderBoldAndCode(line, isUser, onZoom)}
+                </div>
+              ));
+            }
+          })}
         </div>
 
         {/* Action buttons */}
