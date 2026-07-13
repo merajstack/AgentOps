@@ -25,6 +25,14 @@ export default function HeroPage() {
     videoSectionRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [])
 
+  const scrollToFaqs = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    const element = document.getElementById('faqs')
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [])
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -79,16 +87,22 @@ export default function HeroPage() {
               <span className="text-2xl font-semibold tracking-tight">AgentOps</span>
 
               <div className="flex items-center gap-4">
+                <button
+                  onClick={scrollToFaqs}
+                  className="bg-transparent border border-white/20 hover:bg-white/10 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer hidden sm:block"
+                >
+                  FAQs
+                </button>
                 <Link
                   href="/chat"
                   className="bg-white text-black px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors cursor-pointer hidden sm:block"
                 >
                   Start a Chat
                 </Link>
-                
+
                 {/* User Menu */}
                 <Link href="/settings" className="bg-white/10 hover:bg-white/20 border border-white/20 text-white w-10 h-10 rounded-full flex items-center justify-center transition-colors cursor-pointer">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                 </Link>
               </div>
             </div>
@@ -105,7 +119,7 @@ export default function HeroPage() {
                 />
                 <FadeIn delay={800} duration={1000}>
                   <p className="text-base md:text-lg text-gray-300 mb-5">
-                    We back visionaries and craft ventures that define what comes next.
+                    From prompt to production in minutes.
                   </p>
                 </FadeIn>
                 <FadeIn delay={1200} duration={1000}>
@@ -116,12 +130,12 @@ export default function HeroPage() {
                     >
                       Start a Chat
                     </Link>
-                    <Link
-                      href="/create-chatbot"
+                    <button
+                      onClick={scrollToFaqs}
                       className="bg-transparent border border-white/40 text-white px-8 py-3 rounded-lg font-medium hover:bg-white/10 transition-colors cursor-pointer backdrop-blur-sm"
                     >
-                      Build My Chatbot
-                    </Link>
+                      FAQs
+                    </button>
                   </div>
                 </FadeIn>
               </div>

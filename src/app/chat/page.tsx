@@ -468,9 +468,9 @@ function EmptyState({ onQuestionClick }: { onQuestionClick: (q: string) => void 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-8 max-w-lg w-full">
         {[
           'Give me an automation setup for business inquiries',
-          'Give me an automation setup for client invoicing',
-          'Give me an automation setup for generating leads',
-          'How does the floating chatbot automation webhook work?',
+          'Give me an automation setup for business inquiries image',
+          'Give me an automation setup for business usage',
+          'demo integration sit',
         ].map((q) => (
           <button
             key={q}

@@ -80,8 +80,7 @@ export default function RootLayout({
               })();
             `,
           }}
-        />
-      </body>
+        />      </body>
     </html>
   );
 }
