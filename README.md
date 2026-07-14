@@ -31,7 +31,7 @@ Try at : https://agentops-auto.vercel.app/
   </a>
 </p>
 
-<b>Sample Workflow: Try at : https://steel-agentops.vercel.app/</b>
+<b>Sample Workflow: Try at : </b>
 ```
 Customer Inquiry
        │
