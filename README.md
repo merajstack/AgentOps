@@ -31,7 +31,7 @@ Try at : https://agentops-auto.vercel.app/
   </a>
 </p>
 
-<b>Sample Workflow: Try at : </b>
+<b>Sample Workflow:</b>
 ```
 Customer Inquiry
        │
@@ -54,7 +54,7 @@ Customer Inquiry
   Invoice Delivered
 ```
 
-<b>Test Workflow at:<b/> steel-agentops.vercel.app
+
 ---
 
 ## ✨ Features
@@ -74,7 +74,7 @@ Customer Inquiry
 
 <p align="center">
 
-Next.js • n8n • Supabase • Gmail API • HTML2PDF • JavaScript • Vercel
+Next.js • n8n • Supabase • Gmail API • HTML2PDF • JavaScript • Vercel • Groq
 
 </p>
 
