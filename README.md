@@ -57,7 +57,7 @@ Customer Inquiry
 
 ---
 
-## ✨ Features
+##  Features
 
 * 🤖 AI-powered workflow automation
 * 📩 Automated business inquiry handling
@@ -81,7 +81,7 @@ Next.js • n8n • Supabase • Gmail API • HTML2PDF • JavaScript • Verce
 ---
 ---
 
-# 🖼️ Project Screenshots
+# 🖼️ Project Images
 
 <p align="center">
   <img src="./public/rm1.png" alt="Dashboard" width="48%" />
@@ -95,7 +95,7 @@ Next.js • n8n • Supabase • Gmail API • HTML2PDF • JavaScript • Verce
 
 ---
 
-# 🚀 Installation Guide
+#  Installation Guide
 
 ## Prerequisites
 
@@ -146,17 +146,32 @@ yarn install
 Create a `.env.local` file in the project root.
 
 ```env
+# Groq API Key (Main - for AgentOps assistant)
+GROQ_API_KEY=your_groq_api_key
+
+# Groq API Key (Personalised Chatbot feature)
+GROQ_CHATBOT_API_KEY=your_chatbot_groq_api_key
+
+# Webhook URLs for the 2 types of automations
+NEXT_PUBLIC_INQUIRY_WEBHOOK_URL=your_business_inquiry_webhook_url
+NEXT_PUBLIC_LEADCAPTURE_WEBHOOK_URL=your_lead_capture_webhook_url
+
+# Chatbot Widget Settings
+NEXT_PUBLIC_CHATBOT_ICON_URL=your_chatbot_icon_url
+
+# Procurement Form Webhook
+NEXT_PUBLIC_FORM_WEBHOOK_URL=your_procurement_form_webhook_url
+
+# Supabase
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+# Other Webhooks
+NEXT_PUBLIC_LEAD_FORM_WEBHOOK_URL=your_lead_form_webhook_url
+NEXT_PUBLIC_MAIN_OTP_WEBHOOK_URL=your_main_otp_webhook_url
 
-N8N_WEBHOOK_URL=your_n8n_webhook
-
-GMAIL_CLIENT_ID=your_client_id
-GMAIL_CLIENT_SECRET=your_client_secret
-GMAIL_REFRESH_TOKEN=your_refresh_token
-GMAIL_USER=your_email
+# Google OAuth Client ID
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id
 ```
 
 Update the values according to your setup.
