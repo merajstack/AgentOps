@@ -149,15 +149,8 @@ Create a `.env.local` file in the project root.
 # Groq API Key (Main - for AgentOps assistant)
 GROQ_API_KEY=your_groq_api_key
 
-# Groq API Key (Personalised Chatbot feature)
-GROQ_CHATBOT_API_KEY=your_chatbot_groq_api_key
-
-# Webhook URLs for the 2 types of automations
+# Webhook URLs for the automation
 NEXT_PUBLIC_INQUIRY_WEBHOOK_URL=your_business_inquiry_webhook_url
-NEXT_PUBLIC_LEADCAPTURE_WEBHOOK_URL=your_lead_capture_webhook_url
-
-# Chatbot Widget Settings
-NEXT_PUBLIC_CHATBOT_ICON_URL=your_chatbot_icon_url
 
 # Procurement Form Webhook
 NEXT_PUBLIC_FORM_WEBHOOK_URL=your_procurement_form_webhook_url
@@ -166,11 +159,7 @@ NEXT_PUBLIC_FORM_WEBHOOK_URL=your_procurement_form_webhook_url
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-# Other Webhooks
-NEXT_PUBLIC_LEAD_FORM_WEBHOOK_URL=your_lead_form_webhook_url
-NEXT_PUBLIC_MAIN_OTP_WEBHOOK_URL=your_main_otp_webhook_url
-
-# Google OAuth Client ID
+# Google OAuth Client ID --Authentication
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id
 ```
 
