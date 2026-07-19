@@ -74,7 +74,45 @@ Customer Inquiry
 
 <p align="center">
 
-Next.js • n8n • Supabase • Gmail API • HTML2PDF • JavaScript • Vercel • Groq
+ ┌──────────────────────────────────────────────────────────────┐
+ │                       FRONTEND LAYER                         │
+ │  ┌────────────────────────────────────────────────────────┐  │
+ │  │                  Next.js (App Router)                  │  │
+ │  │   - TypeScript UI Components                           │  │
+ │  │   - Google Auth Handshake                              │  │
+ │  └───────────────────────────┬────────────────────────────┘  │
+ └──────────────────────────────┼───────────────────────────────┘
+                                │ (API Calls / Submissions)
+                         ▲      ▼      ▲
+      ┌──────────────────┼─────────────┼──────────────────┐
+      │ Hosted on:       │             │                  │
+      │ 🌐 Vercel        │             │                  │
+      └──────────────────┘             │                  │
+                                       │ (Server-to-Server Protocols)
+                                       ▼
+ ┌──────────────────────────────────────────────────────────────┐
+ │                       BACKEND LAYER                          │
+ │  ┌────────────────────────────────────────────────────────┐  │
+ │  │              TypeScript Server / Functions             │  │
+ │  │   - Main Application Logic & API Routes                │  │
+ │  │   - HTML2PDF (Converts dynamic raw HTML to PDF)        │  │
+ │  │   - Native JavaScript modules & Utilities              │  │
+ │  └─────────────┬─────────────────────┬──────────────┬─────┘  │
+ └────────────────┼─────────────────────┼──────────────┼────────┘
+                  │                     │              │
+    (PostgreSQL)  ▼    (Webhooks / REST)▼              ▼ (Sub-second LLM)
+ ┌─────────────────────┐       ┌────────────────┐     ┌────────────────┐
+ │      SUPABASE       │       │      n8n       │     │      GROQ      │
+ │ - Database Storage  │       │ (Automation Engine) │     │  (Llama 3.1)   │
+ │ - Google Auth Core  │       └───────┬────────┘     └────────────────┘
+ └─────────────────────┘               │
+                                       │ (OAuth Client)
+                                       ▼
+                               ┌────────────────┐
+                               │   GMAIL API    │
+                               │ - Auto-Alerts  │
+                               │ - Email Output │
+                               └────────────────┘
 
 </p>
 
