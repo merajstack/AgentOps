@@ -26,7 +26,7 @@ Try at : https://agentops-auto.vercel.app/
 
 ## 🎥 Demo
 <p align="center">
-  <a href="https://www.loom.com/share/e5edc11a5a194ef9855af41bc78a4c51">
+  <a href="https://drive.google.com/file/d/1zrvpauF6zq4Yoae-GxTxlBfsfcThcmV2/view?usp=drive_link">
     <img src="./public/demo.png" alt="AgentOps Demo">
   </a>
 </p>
