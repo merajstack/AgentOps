@@ -277,6 +277,9 @@ Then open a Pull Request.
 
 This project is licensed under the MIT License.
 
+<p align="center">
+
+</p>
 <div align="center">
 
 ### ⚡ Automate. Approve. Generate. Deliver.
