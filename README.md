@@ -111,7 +111,7 @@ Customer Inquiry
 ```
 ---
 
-# 🖼️ Project Images
+# Project Images
 
 <p align="center">
   <img src="./public/rm1.png" alt="Dashboard" width="48%" />
@@ -241,7 +241,7 @@ AgentOps/
 
 ---
 
-## 🔧 Workflow Setup
+##  Workflow Setup
 
 1. Configure your Supabase database.
 2. Import the n8n workflow.
@@ -273,12 +273,13 @@ Then open a Pull Request.
 
 ---
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License.
-
+---
+## Achievment 🏆
 <p align="center">
-
+<img src = "./public/Achievement.png"/>
 </p>
 <div align="center">
 
