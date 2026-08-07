@@ -277,10 +277,7 @@ Then open a Pull Request.
 
 This project is licensed under the MIT License.
 ---
-## Achievment 🏆
-<p align="center">
-<img src = "./public/Achievement.png"/>
-</p>
+
 <div align="center">
 
 ### ⚡ Automate. Approve. Generate. Deliver.
