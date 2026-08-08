@@ -5,7 +5,7 @@
 ### Multi-Agent Business Automation Platform 
 
 <b>
- Developed by :@merakstack,@shiva-code-og,@vignesh-0314,@navaneesh
+ Developed by :@merakstack,@shiva-code-og,@navaneesh
 </b>
 
 <p>
